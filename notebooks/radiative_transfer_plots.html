@@ -1,0 +1,477 @@
+<html>
+<head>
+<title>plot2_syn.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #8c8c8c; font-style: italic;}
+.s1 { color: #0033b3;}
+.s2 { color: #080808;}
+.s3 { color: #067d17;}
+.s4 { color: #0037a6;}
+.s5 { color: #1750eb;}
+</style>
+</head>
+<body bgcolor="#ffffff">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#c0c0c0" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+plot2_syn.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% 
+</span><span class="s1">import </span><span class="s2">os</span>
+<span class="s1">import </span><span class="s2">re</span>
+<span class="s1">import </span><span class="s2">pandas </span><span class="s1">as </span><span class="s2">pd</span>
+<span class="s1">import </span><span class="s2">numpy </span><span class="s1">as </span><span class="s2">np</span>
+<span class="s1">import </span><span class="s2">seaborn </span><span class="s1">as </span><span class="s2">sns</span>
+<span class="s1">import </span><span class="s2">matplotlib.pyplot </span><span class="s1">as </span><span class="s2">plt</span>
+
+<span class="s0"># Path to the saved combined CSV</span>
+<span class="s0">#data_path = &quot;/home/chris/projects/pyLRT/rad_scripts/Processed_Data/libRadtran_syn_combined.csv&quot;</span>
+<span class="s2">data_path = </span><span class="s3">&quot;/mnt/c/Apps/PyARTS/libradtran/fog_scripts/rad_scripts/Processed_Data/libRadtran_syn_combined.csv&quot;</span>
+<span class="s0"># Load the data</span>
+<span class="s2">combined_df = pd.read_csv(data_path)</span>
+
+<span class="s0"># Check structure</span>
+<span class="s2">print(</span><span class="s3">&quot;✅ Loaded data with shape:&quot;</span><span class="s2">, combined_df.shape)</span>
+
+<span class="s0">#%% 
+# Ensure your combined_df from earlier is available</span>
+
+<span class="s0"># Numerical integration over wavelength for each experiment</span>
+<span class="s1">def </span><span class="s2">integrate_flux(df):</span>
+    <span class="s0"># group data by Exp, RH, SZA, zout</span>
+    <span class="s2">grouped = df.groupby([</span><span class="s3">'Exp'</span><span class="s2">, </span><span class="s3">'RH'</span><span class="s2">, </span><span class="s3">'SZA'</span><span class="s2">, </span><span class="s3">'zout_km'</span><span class="s2">], group_keys=</span><span class="s1">False</span><span class="s2">)</span>
+    <span class="s2">results = []</span>
+
+    <span class="s1">for </span><span class="s2">(exp, rh, sza, zout), g </span><span class="s1">in </span><span class="s2">grouped:</span>
+        <span class="s2">g_sorted = g.sort_values(</span><span class="s3">'lambda_nm'</span><span class="s2">)</span>
+        <span class="s2">wvl = g_sorted[</span><span class="s3">'lambda_nm'</span><span class="s2">].values</span>
+        <span class="s2">integ = {}</span>
+        <span class="s1">for </span><span class="s2">col </span><span class="s1">in </span><span class="s2">[</span><span class="s3">'edir'</span><span class="s2">, </span><span class="s3">'edn'</span><span class="s2">, </span><span class="s3">'eup'</span><span class="s2">, </span><span class="s3">'enet'</span><span class="s2">, </span><span class="s3">'heat'</span><span class="s2">]:</span>
+            <span class="s2">integ[col] = np.trapezoid(g_sorted[col], wvl)</span>
+        <span class="s2">results.append({</span>
+            <span class="s3">'Exp'</span><span class="s2">: exp,</span>
+            <span class="s3">'RH'</span><span class="s2">: rh,</span>
+            <span class="s3">'SZA'</span><span class="s2">: sza,</span>
+            <span class="s3">'zout_km'</span><span class="s2">: zout,</span>
+            <span class="s2">**integ</span>
+        <span class="s2">})</span>
+
+    <span class="s1">return </span><span class="s2">pd.DataFrame(results)</span>
+
+<span class="s0"># integrate</span>
+<span class="s2">integrated_wvl_df = integrate_flux(combined_df)</span>
+
+<span class="s2">print(integrated_wvl_df.head())</span>
+<span class="s2">print(</span><span class="s3">f&quot;✅ Integrated over wavelength: </span><span class="s4">{</span><span class="s2">integrated_wvl_df.shape[</span><span class="s5">0</span><span class="s2">]</span><span class="s4">} </span><span class="s3">records.&quot;</span><span class="s2">)</span>
+
+<span class="s0">#%% 
+</span>
+<span class="s1">def </span><span class="s2">integrate_flux_weighted(df):</span>
+    <span class="s0"># First integrate over wavelength for each experiment/SZA</span>
+    <span class="s2">grouped = df.groupby([</span><span class="s3">'Exp'</span><span class="s2">, </span><span class="s3">'RH'</span><span class="s2">, </span><span class="s3">'SZA'</span><span class="s2">, </span><span class="s3">'zout_km'</span><span class="s2">], group_keys=</span><span class="s1">False</span><span class="s2">)</span>
+    <span class="s2">partial_results = []</span>
+
+    <span class="s1">for </span><span class="s2">(exp, rh, sza, zout), g </span><span class="s1">in </span><span class="s2">grouped:</span>
+        <span class="s2">g_sorted = g.sort_values(</span><span class="s3">'lambda_nm'</span><span class="s2">)</span>
+        <span class="s2">wvl = g_sorted[</span><span class="s3">'lambda_nm'</span><span class="s2">].values</span>
+        <span class="s2">integ = {}</span>
+        <span class="s1">for </span><span class="s2">col </span><span class="s1">in </span><span class="s2">[</span><span class="s3">'edir'</span><span class="s2">, </span><span class="s3">'edn'</span><span class="s2">, </span><span class="s3">'eup'</span><span class="s2">, </span><span class="s3">'enet'</span><span class="s2">, </span><span class="s3">'heat'</span><span class="s2">]:</span>
+            <span class="s2">integ[col] = np.trapezoid(g_sorted[col], wvl)</span>
+        <span class="s2">partial_results.append({</span>
+            <span class="s3">'Exp'</span><span class="s2">: exp,</span>
+            <span class="s3">'RH'</span><span class="s2">: rh,</span>
+            <span class="s3">'SZA'</span><span class="s2">: sza,</span>
+            <span class="s3">'zout_km'</span><span class="s2">: zout,</span>
+            <span class="s2">**integ</span>
+        <span class="s2">})</span>
+
+    <span class="s2">df_int = pd.DataFrame(partial_results)</span>
+
+    <span class="s0"># Now compute flux-weighted average across SZAs</span>
+    <span class="s2">results = []</span>
+    <span class="s1">for </span><span class="s2">(exp, rh, zout), g </span><span class="s1">in </span><span class="s2">df_int.groupby([</span><span class="s3">'Exp'</span><span class="s2">, </span><span class="s3">'RH'</span><span class="s2">, </span><span class="s3">'zout_km'</span><span class="s2">]):</span>
+        <span class="s0"># choose weighting scheme: total downwelling flux or cos(SZA)</span>
+        <span class="s2">weights = np.cos(np.radians(g[</span><span class="s3">'SZA'</span><span class="s2">])) * (g[</span><span class="s3">'edir'</span><span class="s2">] + g[</span><span class="s3">'edn'</span><span class="s2">])</span>
+        <span class="s2">wsum = weights.sum()</span>
+
+        <span class="s2">avg = {col: np.average(g[col], weights=weights) </span><span class="s1">for </span><span class="s2">col </span><span class="s1">in </span><span class="s2">[</span><span class="s3">'edir'</span><span class="s2">, </span><span class="s3">'edn'</span><span class="s2">, </span><span class="s3">'eup'</span><span class="s2">, </span><span class="s3">'enet'</span><span class="s2">, </span><span class="s3">'heat'</span><span class="s2">]}</span>
+        <span class="s2">results.append({</span>
+            <span class="s3">'Exp'</span><span class="s2">: exp,</span>
+            <span class="s3">'RH'</span><span class="s2">: rh,</span>
+            <span class="s3">'zout_km'</span><span class="s2">: zout,</span>
+            <span class="s2">**avg,</span>
+            <span class="s3">'SZA_weighted_mean'</span><span class="s2">: np.average(g[</span><span class="s3">'SZA'</span><span class="s2">], weights=weights)</span>
+        <span class="s2">})</span>
+
+    <span class="s1">return </span><span class="s2">pd.DataFrame(results)</span>
+
+<span class="s0"># run weighted integration</span>
+<span class="s2">integrated_sza_df = integrate_flux_weighted(combined_df)</span>
+<span class="s2">print(integrated_sza_df.head())</span>
+<span class="s2">print(</span><span class="s3">f&quot;✅ Flux-weighted integration and SZA averaging complete: </span><span class="s4">{</span><span class="s2">integrated_sza_df.shape[</span><span class="s5">0</span><span class="s2">]</span><span class="s4">} </span><span class="s3">records.&quot;</span><span class="s2">)</span>
+
+<span class="s0">#%% 
+</span>
+<span class="s0"># choose your parameters</span>
+<span class="s2">selected_zout = </span><span class="s5">1    </span><span class="s0"># [km]</span>
+<span class="s2">selected_RH = </span><span class="s5">90</span>
+
+<span class="s2">subset = integrated_wvl_df.query(</span><span class="s3">&quot;zout_km == @selected_zout and RH == @selected_RH&quot;</span><span class="s2">)</span>
+
+<span class="s0"># Plot example: eup vs SZA grouped by experiment</span>
+<span class="s2">sns.set_style(</span><span class="s3">&quot;whitegrid&quot;</span><span class="s2">)</span>
+<span class="s2">fig, ax = plt.subplots(figsize=(</span><span class="s5">7</span><span class="s2">,</span><span class="s5">5</span><span class="s2">))</span>
+<span class="s2">sns.lineplot(</span>
+    <span class="s2">data=subset, x=</span><span class="s3">&quot;SZA&quot;</span><span class="s2">, y=</span><span class="s3">&quot;heat&quot;</span><span class="s2">, hue=</span><span class="s3">&quot;Exp&quot;</span><span class="s2">, marker=</span><span class="s3">&quot;o&quot;</span><span class="s2">, ax=ax</span>
+<span class="s2">)</span>
+<span class="s2">ax.set_title(</span><span class="s3">f&quot;Upwelling Flux vs SZA at zout=</span><span class="s4">{</span><span class="s2">selected_zout</span><span class="s4">} </span><span class="s3">km, RH=</span><span class="s4">{</span><span class="s2">selected_RH</span><span class="s4">}</span><span class="s3">%&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlabel(</span><span class="s3">&quot;Solar Zenith Angle [°]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_ylabel(</span><span class="s3">&quot;Integrated Upwelling Flux (∫ eup dλ)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.legend(bbox_to_anchor=(</span><span class="s5">1.05</span><span class="s2">, </span><span class="s5">1</span><span class="s2">), loc=</span><span class="s3">&quot;upper left&quot;</span><span class="s2">)</span>
+<span class="s2">plt.tight_layout()</span>
+<span class="s2">plt.show()</span>
+
+<span class="s0">#%% 
+</span><span class="s1">def </span><span class="s2">average_over_sza_spectral(df):</span>
+    <span class="s0">&quot;&quot;&quot;Flux-weighted average over SZA, retaining spectral resolution.&quot;&quot;&quot;</span>
+    <span class="s2">grouped = df.groupby([</span><span class="s3">'Exp'</span><span class="s2">, </span><span class="s3">'RH'</span><span class="s2">, </span><span class="s3">'zout_km'</span><span class="s2">, </span><span class="s3">'lambda_nm'</span><span class="s2">], group_keys=</span><span class="s1">False</span><span class="s2">)</span>
+    <span class="s2">records = []</span>
+
+    <span class="s1">for </span><span class="s2">(exp, rh, zout, lam), g </span><span class="s1">in </span><span class="s2">grouped:</span>
+        <span class="s2">sza = np.radians(g[</span><span class="s3">'SZA'</span><span class="s2">].values)</span>
+        <span class="s2">cosw = np.cos(sza)</span>
+        <span class="s2">weights = cosw / np.sum(cosw)</span>
+
+        <span class="s2">averaged = {}</span>
+        <span class="s1">for </span><span class="s2">col </span><span class="s1">in </span><span class="s2">[</span><span class="s3">'edir'</span><span class="s2">, </span><span class="s3">'edn'</span><span class="s2">, </span><span class="s3">'eup'</span><span class="s2">, </span><span class="s3">'enet'</span><span class="s2">, </span><span class="s3">'heat'</span><span class="s2">]:</span>
+            <span class="s2">averaged[col] = np.average(g[col].values, weights=weights)</span>
+
+        <span class="s2">records.append({</span>
+            <span class="s3">'Exp'</span><span class="s2">: exp,</span>
+            <span class="s3">'RH'</span><span class="s2">: rh,</span>
+            <span class="s3">'zout_km'</span><span class="s2">: zout,</span>
+            <span class="s3">'lambda_nm'</span><span class="s2">: lam,</span>
+            <span class="s2">**averaged</span>
+        <span class="s2">})</span>
+
+    <span class="s1">return </span><span class="s2">pd.DataFrame(records)</span>
+
+<span class="s0"># Apply to the full combined dataset</span>
+<span class="s2">sza_avg_spectral_df = average_over_sza_spectral(combined_df)</span>
+
+<span class="s2">print(sza_avg_spectral_df.head())</span>
+<span class="s2">print(</span><span class="s3">f&quot;✅ Spectral flux-weighted SZA average: </span><span class="s4">{</span><span class="s2">sza_avg_spectral_df.shape[</span><span class="s5">0</span><span class="s2">]</span><span class="s4">} </span><span class="s3">rows&quot;</span><span class="s2">)</span>
+
+<span class="s0">#%% 
+# ===============================================================</span>
+<span class="s0"># 🎨 Select parameters</span>
+<span class="s0"># ===============================================================</span>
+<span class="s2">target_RH   = </span><span class="s5">60       </span><span class="s0"># e.g. one humidity condition</span>
+<span class="s2">target_zout = </span><span class="s5">1.0      </span><span class="s0"># e.g. surface level</span>
+<span class="s2">plot_xlim   = (</span><span class="s5">250</span><span class="s2">, </span><span class="s5">2000</span><span class="s2">)</span>
+
+<span class="s0"># --- Filter ---</span>
+<span class="s2">subset = sza_avg_spectral_df.query(</span><span class="s3">&quot;RH == @target_RH and zout_km == @target_zout&quot;</span><span class="s2">).copy()</span>
+
+<span class="s0"># --- Compute total downwelling flux (direct + diffuse) ---</span>
+<span class="s2">subset[</span><span class="s3">&quot;edown_total&quot;</span><span class="s2">] = subset[</span><span class="s3">&quot;edir&quot;</span><span class="s2">] + subset[</span><span class="s3">&quot;edn&quot;</span><span class="s2">]</span>
+
+<span class="s0"># --- Compute albedo ---</span>
+<span class="s2">subset[</span><span class="s3">&quot;albedo&quot;</span><span class="s2">] = subset[</span><span class="s3">&quot;eup&quot;</span><span class="s2">] / subset[</span><span class="s3">&quot;edown_total&quot;</span><span class="s2">]</span>
+
+<span class="s0"># ===============================================================</span>
+<span class="s0"># 📈 Plot albedo vs wavelength</span>
+<span class="s0"># ===============================================================</span>
+<span class="s1">import </span><span class="s2">matplotlib.pyplot </span><span class="s1">as </span><span class="s2">plt</span>
+
+<span class="s2">fig, ax = plt.subplots(figsize=(</span><span class="s5">8</span><span class="s2">,</span><span class="s5">5</span><span class="s2">))</span>
+
+<span class="s1">for </span><span class="s2">exp, g </span><span class="s1">in </span><span class="s2">subset.groupby(</span><span class="s3">&quot;Exp&quot;</span><span class="s2">):</span>
+    <span class="s2">g_sorted = g.sort_values(</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">)</span>
+    <span class="s2">ax.plot(</span>
+        <span class="s2">g_sorted[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">],</span>
+        <span class="s2">g_sorted[</span><span class="s3">&quot;albedo&quot;</span><span class="s2">],</span>
+        <span class="s2">lw=</span><span class="s5">1.3</span><span class="s2">,</span>
+        <span class="s2">label=exp</span>
+    <span class="s2">)</span>
+
+<span class="s2">ax.set_xlabel(</span><span class="s3">&quot;Wavelength [nm]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_ylabel(</span><span class="s3">&quot;Albedo (eup / (edir + edn))&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_title(</span><span class="s3">f&quot;Spectral Albedo (RH=</span><span class="s4">{</span><span class="s2">target_RH</span><span class="s4">}</span><span class="s3">%, z=</span><span class="s4">{</span><span class="s2">target_zout</span><span class="s4">} </span><span class="s3">km)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlim(plot_xlim)</span>
+<span class="s2">ax.grid(</span><span class="s1">True</span><span class="s2">, alpha=</span><span class="s5">0.3</span><span class="s2">)</span>
+<span class="s2">ax.legend(fontsize=</span><span class="s5">8</span><span class="s2">, loc=</span><span class="s3">&quot;best&quot;</span><span class="s2">)</span>
+<span class="s2">plt.tight_layout()</span>
+<span class="s2">plt.show()</span>
+
+<span class="s0">#%% 
+# ===============================================================</span>
+<span class="s0"># ⚙️ PARAMETERS</span>
+<span class="s0"># ===============================================================</span>
+<span class="s2">target_RH   = </span><span class="s5">60       </span><span class="s0"># select humidity</span>
+<span class="s2">target_zout = </span><span class="s5">1.0      </span><span class="s0"># km</span>
+<span class="s2">plot_xlim   = (</span><span class="s5">250</span><span class="s2">, </span><span class="s5">2000</span><span class="s2">)</span>
+
+<span class="s0"># --- Filter for chosen RH and altitude ---</span>
+<span class="s2">subset = sza_avg_spectral_df.query(</span><span class="s3">&quot;RH == @target_RH and zout_km == @target_zout&quot;</span><span class="s2">).copy()</span>
+
+<span class="s0"># --- Compute total downwelling flux (direct + diffuse) ---</span>
+<span class="s2">subset[</span><span class="s3">&quot;edown_total&quot;</span><span class="s2">] = subset[</span><span class="s3">&quot;edir&quot;</span><span class="s2">] + subset[</span><span class="s3">&quot;edn&quot;</span><span class="s2">]</span>
+
+<span class="s0"># --- Compute albedo using total downward flux ---</span>
+<span class="s2">subset[</span><span class="s3">&quot;albedo&quot;</span><span class="s2">] = subset[</span><span class="s3">&quot;eup&quot;</span><span class="s2">] / subset[</span><span class="s3">&quot;edown_total&quot;</span><span class="s2">]</span>
+
+<span class="s0"># --- Extract clear-sky baseline ---</span>
+<span class="s2">clear_sky = subset[subset[</span><span class="s3">&quot;Exp&quot;</span><span class="s2">] == </span><span class="s3">&quot;ClearSky&quot;</span><span class="s2">][[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">, </span><span class="s3">&quot;albedo&quot;</span><span class="s2">]].rename(columns={</span><span class="s3">&quot;albedo&quot;</span><span class="s2">: </span><span class="s3">&quot;albedo_clear&quot;</span><span class="s2">})</span>
+
+<span class="s0"># --- Merge each experiment with clear-sky baseline on wavelength ---</span>
+<span class="s2">merged = subset.merge(clear_sky, on=</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">, how=</span><span class="s3">&quot;left&quot;</span><span class="s2">, suffixes=(</span><span class="s3">&quot;&quot;</span><span class="s2">, </span><span class="s3">&quot;_clear&quot;</span><span class="s2">))</span>
+
+<span class="s0"># --- Compute Δ albedo ---</span>
+<span class="s2">merged[</span><span class="s3">&quot;delta_albedo&quot;</span><span class="s2">] = merged[</span><span class="s3">&quot;albedo&quot;</span><span class="s2">] - merged[</span><span class="s3">&quot;albedo_clear&quot;</span><span class="s2">]</span>
+
+<span class="s0"># ===============================================================</span>
+<span class="s0"># 📈 PLOT Δ albedo vs wavelength for each experiment</span>
+<span class="s0"># ===============================================================</span>
+
+<span class="s2">cmap = plt.cm.tab10</span>
+<span class="s2">colors = cmap(np.linspace(</span><span class="s5">0</span><span class="s2">, </span><span class="s5">1</span><span class="s2">, merged[</span><span class="s3">&quot;Exp&quot;</span><span class="s2">].nunique()))</span>
+
+<span class="s2">fig, ax = plt.subplots(figsize=(</span><span class="s5">12</span><span class="s2">,</span><span class="s5">5</span><span class="s2">))</span>
+
+<span class="s1">for </span><span class="s2">(exp, g), color </span><span class="s1">in </span><span class="s2">zip(merged.groupby(</span><span class="s3">&quot;Exp&quot;</span><span class="s2">), colors):</span>
+    <span class="s1">if </span><span class="s2">exp == </span><span class="s3">&quot;ClearSky&quot;</span><span class="s2">:</span>
+        <span class="s1">continue</span>
+    <span class="s2">ax.plot(g[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">], g[</span><span class="s3">&quot;delta_albedo&quot;</span><span class="s2">], lw=</span><span class="s5">1.3</span><span class="s2">, label=exp, color=color)</span>
+
+<span class="s2">ax.axhline(</span><span class="s5">0</span><span class="s2">, color=</span><span class="s3">&quot;white&quot;</span><span class="s2">, lw=</span><span class="s5">0.8</span><span class="s2">, ls=</span><span class="s3">&quot;--&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlabel(</span><span class="s3">&quot;Wavelength [nm]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_ylabel(</span><span class="s3">&quot;Δ Albedo = Albedo(Exp) – Albedo(ClearSky)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_title(</span><span class="s3">f&quot;Albedo Difference vs Wavelength (RH=</span><span class="s4">{</span><span class="s2">target_RH</span><span class="s4">}</span><span class="s3">%, z=</span><span class="s4">{</span><span class="s2">target_zout</span><span class="s4">} </span><span class="s3">km)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlim(plot_xlim)</span>
+<span class="s2">ax.grid(</span><span class="s1">True</span><span class="s2">, alpha=</span><span class="s5">0.3</span><span class="s2">, color=</span><span class="s3">&quot;gray&quot;</span><span class="s2">)</span>
+<span class="s2">ax.legend(fontsize=</span><span class="s5">8</span><span class="s2">, bbox_to_anchor=(</span><span class="s5">1.05</span><span class="s2">, </span><span class="s5">1</span><span class="s2">), loc=</span><span class="s3">&quot;upper left&quot;</span><span class="s2">, frameon=</span><span class="s1">False</span><span class="s2">)</span>
+<span class="s2">plt.tight_layout()</span>
+<span class="s2">plt.show()</span>
+
+
+<span class="s0">#%% 
+</span><span class="s2">solar_path = </span><span class="s3">&quot;/home/chris/libRadtran-2.0.6/data/solar_flux/kurudz_1.0nm.dat&quot;</span>
+<span class="s0"># libRadtran Kurucz format: wavelength [nm] and irradiance [W m-2 nm-1]</span>
+<span class="s2">solar_df = pd.read_csv(</span>
+    <span class="s2">solar_path,</span>
+    <span class="s2">sep=</span><span class="s3">r&quot;\s+&quot;</span><span class="s2">,        </span><span class="s0"># replaces delim_whitespace=True</span>
+    <span class="s2">comment=</span><span class="s3">&quot;#&quot;</span><span class="s2">,</span>
+    <span class="s2">names=[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">, </span><span class="s3">&quot;irradiance_Wm2nm&quot;</span><span class="s2">],</span>
+    <span class="s2">header=</span><span class="s1">None</span>
+<span class="s2">)</span>
+
+<span class="s0">#%% 
+# ===============================================================</span>
+<span class="s2">fig, ax = plt.subplots(figsize=(</span><span class="s5">8</span><span class="s2">,</span><span class="s5">5</span><span class="s2">))</span>
+
+<span class="s0"># Plot modeled fluxes</span>
+<span class="s1">for </span><span class="s2">exp, g </span><span class="s1">in </span><span class="s2">subset.groupby(</span><span class="s3">&quot;Exp&quot;</span><span class="s2">):</span>
+    <span class="s2">g_sorted = g.sort_values(</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">).copy()</span>
+    <span class="s2">g_sorted[</span><span class="s3">&quot;flux_total&quot;</span><span class="s2">] = g_sorted[</span><span class="s3">&quot;edn&quot;</span><span class="s2">] + g_sorted[</span><span class="s3">&quot;edir&quot;</span><span class="s2">]</span>
+    <span class="s2">ax.plot(</span>
+        <span class="s2">g_sorted[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">],</span>
+        <span class="s2">g_sorted[</span><span class="s3">&quot;flux_total&quot;</span><span class="s2">],</span>
+        <span class="s2">lw=</span><span class="s5">1.2</span><span class="s2">,</span>
+        <span class="s2">label=exp</span>
+    <span class="s2">)</span>
+
+<span class="s0"># Plot the solar spectrum (normalized for visibility)</span>
+<span class="s2">solar_norm = solar_df[</span><span class="s3">&quot;irradiance_Wm2nm&quot;</span><span class="s2">] / solar_df[</span><span class="s3">&quot;irradiance_Wm2nm&quot;</span><span class="s2">].max()</span>
+<span class="s2">flux_norm = subset[</span><span class="s3">&quot;edn&quot;</span><span class="s2">].max()</span>
+<span class="s2">ax.plot(</span>
+    <span class="s2">solar_df[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">],</span>
+    <span class="s2">solar_norm * flux_norm,</span>
+    <span class="s2">color=</span><span class="s3">&quot;black&quot;</span><span class="s2">,</span>
+    <span class="s2">lw=</span><span class="s5">1.0</span><span class="s2">,</span>
+    <span class="s2">ls=</span><span class="s3">&quot;--&quot;</span><span class="s2">,</span>
+    <span class="s2">label=</span><span class="s3">&quot;Solar spectrum (TOA, Kurucz 1 nm)&quot;</span>
+<span class="s2">)</span>
+
+<span class="s0"># ===============================================================</span>
+<span class="s0"># 🪶 Aesthetics</span>
+<span class="s0"># ===============================================================</span>
+<span class="s2">ax.set_xlabel(</span><span class="s3">&quot;Wavelength [nm]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_ylabel(</span><span class="s3">&quot;Downward Flux (edn + edir) [W m⁻² nm⁻¹]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_title(</span><span class="s3">f&quot;Total Downward Spectral Flux vs TOA Solar Spectrum</span><span class="s4">\n</span><span class="s3">(RH=</span><span class="s4">{</span><span class="s2">target_RH</span><span class="s4">}</span><span class="s3">%, z=</span><span class="s4">{</span><span class="s2">target_zout</span><span class="s4">} </span><span class="s3">km)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlim(plot_xlim)</span>
+<span class="s2">ax.semilogx()</span>
+<span class="s2">ax.grid(</span><span class="s1">True</span><span class="s2">, alpha=</span><span class="s5">0.3</span><span class="s2">)</span>
+<span class="s2">ax.legend(fontsize=</span><span class="s5">8</span><span class="s2">, loc=</span><span class="s3">&quot;best&quot;</span><span class="s2">, ncol=</span><span class="s5">2</span><span class="s2">)</span>
+<span class="s2">plt.tight_layout()</span>
+<span class="s2">plt.show()</span>
+<span class="s0">#%% 
+</span>
+<span class="s0"># ===============================================================</span>
+<span class="s0"># ⚙️ PARAMETERS</span>
+<span class="s0"># ===============================================================</span>
+<span class="s2">target_RH   = </span><span class="s5">90       </span><span class="s0"># humidity to inspect</span>
+<span class="s2">target_zout = </span><span class="s5">0.0      </span><span class="s0"># altitude [km]</span>
+<span class="s2">plot_xlim   = (</span><span class="s5">300</span><span class="s2">, </span><span class="s5">2000</span><span class="s2">)</span>
+
+<span class="s0"># --- Filter for RH and altitude ---</span>
+<span class="s2">subset = sza_avg_spectral_df.query(</span><span class="s3">&quot;RH == @target_RH and zout_km == @target_zout&quot;</span><span class="s2">).copy()</span>
+
+<span class="s0"># --- Extract clear-sky reference ---</span>
+<span class="s2">clear_sky = subset[subset[</span><span class="s3">&quot;Exp&quot;</span><span class="s2">] == </span><span class="s3">&quot;ClearSky&quot;</span><span class="s2">][[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">, </span><span class="s3">&quot;edn&quot;</span><span class="s2">]].rename(columns={</span><span class="s3">&quot;edn&quot;</span><span class="s2">: </span><span class="s3">&quot;edn_clear&quot;</span><span class="s2">})</span>
+
+<span class="s0"># --- Merge clear-sky baseline onto each experiment ---</span>
+<span class="s2">merged = subset.merge(clear_sky, on=</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">, how=</span><span class="s3">&quot;left&quot;</span><span class="s2">, suffixes=(</span><span class="s3">&quot;&quot;</span><span class="s2">, </span><span class="s3">&quot;_clear&quot;</span><span class="s2">))</span>
+
+<span class="s0"># --- Compute flux difference ---</span>
+<span class="s2">merged[</span><span class="s3">&quot;delta_edn&quot;</span><span class="s2">] = merged[</span><span class="s3">&quot;edn&quot;</span><span class="s2">] - merged[</span><span class="s3">&quot;edn_clear&quot;</span><span class="s2">]</span>
+
+<span class="s0"># ===============================================================</span>
+<span class="s0"># 📈 Plot Δ downward flux vs wavelength</span>
+<span class="s0"># ===============================================================</span>
+<span class="s2">fig, ax = plt.subplots(figsize=(</span><span class="s5">8</span><span class="s2">,</span><span class="s5">5</span><span class="s2">))</span>
+
+<span class="s1">for </span><span class="s2">exp, g </span><span class="s1">in </span><span class="s2">merged.groupby(</span><span class="s3">&quot;Exp&quot;</span><span class="s2">):</span>
+    <span class="s1">if </span><span class="s2">exp == </span><span class="s3">&quot;ClearSky&quot;</span><span class="s2">:</span>
+        <span class="s1">continue</span>
+    <span class="s2">g_sorted = g.sort_values(</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">)</span>
+    <span class="s2">ax.plot(</span>
+        <span class="s2">g_sorted[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">],</span>
+        <span class="s2">g_sorted[</span><span class="s3">&quot;delta_edn&quot;</span><span class="s2">],</span>
+        <span class="s2">lw=</span><span class="s5">1.3</span><span class="s2">,</span>
+        <span class="s2">label=exp</span>
+    <span class="s2">)</span>
+
+<span class="s2">ax.axhline(</span><span class="s5">0</span><span class="s2">, color=</span><span class="s3">&quot;black&quot;</span><span class="s2">, lw=</span><span class="s5">0.8</span><span class="s2">, ls=</span><span class="s3">&quot;--&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlabel(</span><span class="s3">&quot;Wavelength [nm]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_ylabel(</span><span class="s3">&quot;Δ Downward Flux (edn – edn_clear) [W m⁻² nm⁻¹]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_title(</span><span class="s3">f&quot;Spectral Difference in Downward Flux (RH=</span><span class="s4">{</span><span class="s2">target_RH</span><span class="s4">}</span><span class="s3">%, z=</span><span class="s4">{</span><span class="s2">target_zout</span><span class="s4">} </span><span class="s3">km)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlim(plot_xlim)</span>
+
+<span class="s2">ax.grid(</span><span class="s1">True</span><span class="s2">, alpha=</span><span class="s5">0.3</span><span class="s2">)</span>
+<span class="s2">ax.legend(fontsize=</span><span class="s5">8</span><span class="s2">, loc=</span><span class="s3">&quot;best&quot;</span><span class="s2">)</span>
+<span class="s2">plt.tight_layout()</span>
+<span class="s2">plt.show()</span>
+
+
+<span class="s0">#%% 
+# ===============================================================</span>
+<span class="s0"># ⚙️ PARAMETERS</span>
+<span class="s0"># ===============================================================</span>
+<span class="s2">target_RH   = </span><span class="s5">90       </span><span class="s0"># humidity to inspect</span>
+<span class="s2">target_zout = </span><span class="s5">0.0      </span><span class="s0"># altitude [km]</span>
+<span class="s2">plot_xlim   = (</span><span class="s5">300</span><span class="s2">, </span><span class="s5">2000</span><span class="s2">)</span>
+
+<span class="s0"># --- Filter for RH and altitude ---</span>
+<span class="s2">subset = sza_avg_spectral_df.query(</span><span class="s3">&quot;RH == @target_RH and zout_km == @target_zout&quot;</span><span class="s2">).copy()</span>
+
+<span class="s0"># --- Extract clear-sky reference ---</span>
+<span class="s2">clear_sky = subset[subset[</span><span class="s3">&quot;Exp&quot;</span><span class="s2">] == </span><span class="s3">&quot;ClearSky&quot;</span><span class="s2">][[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">, </span><span class="s3">&quot;edn&quot;</span><span class="s2">]].rename(columns={</span><span class="s3">&quot;edn&quot;</span><span class="s2">: </span><span class="s3">&quot;edn_clear&quot;</span><span class="s2">})</span>
+
+<span class="s0"># --- Merge clear-sky baseline onto each experiment ---</span>
+<span class="s2">merged = subset.merge(clear_sky, on=</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">, how=</span><span class="s3">&quot;left&quot;</span><span class="s2">, suffixes=(</span><span class="s3">&quot;&quot;</span><span class="s2">, </span><span class="s3">&quot;_clear&quot;</span><span class="s2">))</span>
+
+<span class="s0"># --- Compute fractional shading (percent reduction) ---</span>
+<span class="s2">merged[</span><span class="s3">&quot;shade_pct&quot;</span><span class="s2">] = </span><span class="s5">100 </span><span class="s2">* (merged[</span><span class="s3">&quot;edn_clear&quot;</span><span class="s2">] - merged[</span><span class="s3">&quot;edn&quot;</span><span class="s2">]) / merged[</span><span class="s3">&quot;edn_clear&quot;</span><span class="s2">]</span>
+
+<span class="s0"># --- Clip physically unrealistic values ---</span>
+<span class="s2">merged[</span><span class="s3">&quot;shade_pct&quot;</span><span class="s2">] = merged[</span><span class="s3">&quot;shade_pct&quot;</span><span class="s2">].clip(lower=</span><span class="s5">0</span><span class="s2">, upper=</span><span class="s5">100</span><span class="s2">)</span>
+
+<span class="s0"># ===============================================================</span>
+<span class="s0"># 📈 Plot percentage shading vs wavelength</span>
+<span class="s0"># ===============================================================</span>
+<span class="s2">fig, ax = plt.subplots(figsize=(</span><span class="s5">8</span><span class="s2">,</span><span class="s5">5</span><span class="s2">))</span>
+
+<span class="s1">for </span><span class="s2">exp, g </span><span class="s1">in </span><span class="s2">merged.groupby(</span><span class="s3">&quot;Exp&quot;</span><span class="s2">):</span>
+    <span class="s1">if </span><span class="s2">exp == </span><span class="s3">&quot;ClearSky&quot;</span><span class="s2">:</span>
+        <span class="s1">continue</span>
+    <span class="s2">g_sorted = g.sort_values(</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">)</span>
+    <span class="s2">ax.plot(</span>
+        <span class="s2">g_sorted[</span><span class="s3">&quot;lambda_nm&quot;</span><span class="s2">],</span>
+        <span class="s2">g_sorted[</span><span class="s3">&quot;shade_pct&quot;</span><span class="s2">],</span>
+        <span class="s2">lw=</span><span class="s5">1.3</span><span class="s2">,</span>
+        <span class="s2">label=exp</span>
+    <span class="s2">)</span>
+
+<span class="s2">ax.axhline(</span><span class="s5">0</span><span class="s2">, color=</span><span class="s3">&quot;black&quot;</span><span class="s2">, lw=</span><span class="s5">0.8</span><span class="s2">, ls=</span><span class="s3">&quot;--&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlabel(</span><span class="s3">&quot;Wavelength [nm]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_ylabel(</span><span class="s3">&quot;Flux Reduction vs Clear Sky [%]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_title(</span><span class="s3">f&quot;Spectral Shading vs Clear Sky (RH=</span><span class="s4">{</span><span class="s2">target_RH</span><span class="s4">}</span><span class="s3">%, z=</span><span class="s4">{</span><span class="s2">target_zout</span><span class="s4">} </span><span class="s3">km)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlim(plot_xlim)</span>
+<span class="s2">ax.set_ylim(</span><span class="s5">0</span><span class="s2">, </span><span class="s5">100</span><span class="s2">)</span>
+<span class="s2">ax.grid(</span><span class="s1">True</span><span class="s2">, alpha=</span><span class="s5">0.3</span><span class="s2">)</span>
+<span class="s2">ax.legend(fontsize=</span><span class="s5">8</span><span class="s2">, loc=</span><span class="s3">&quot;best&quot;</span><span class="s2">)</span>
+<span class="s2">plt.tight_layout()</span>
+<span class="s2">plt.show()</span>
+
+<span class="s0">#%% 
+</span><span class="s2">target_zout = </span><span class="s5">0.0   </span><span class="s0"># surface level or 0.05 for near-surface</span>
+<span class="s2">target_RH   = </span><span class="s5">90    </span><span class="s0"># example humidity case</span>
+
+<span class="s0"># --- Filter data ---</span>
+<span class="s2">subset = integrated_df.query(</span><span class="s3">&quot;RH == @target_RH and zout_km == @target_zout&quot;</span><span class="s2">).copy()</span>
+
+<span class="s0"># --- Compute broadband albedo (ratio of upwelling to downwelling) ---</span>
+<span class="s2">subset[</span><span class="s3">&quot;albedo&quot;</span><span class="s2">] = subset[</span><span class="s3">&quot;eup&quot;</span><span class="s2">] / subset[</span><span class="s3">&quot;edn&quot;</span><span class="s2">]</span>
+
+<span class="s0"># Sort by SZA for a clean line</span>
+<span class="s2">subset = subset.sort_values(</span><span class="s3">&quot;SZA&quot;</span><span class="s2">)</span>
+
+<span class="s0"># ===============================================================</span>
+<span class="s0"># 📈 Plot</span>
+<span class="s0"># ===============================================================</span>
+<span class="s2">fig, ax = plt.subplots(figsize=(</span><span class="s5">6</span><span class="s2">,</span><span class="s5">4</span><span class="s2">))</span>
+<span class="s2">ax.plot(subset[</span><span class="s3">&quot;SZA&quot;</span><span class="s2">], subset[</span><span class="s3">&quot;albedo&quot;</span><span class="s2">], </span><span class="s3">&quot;o-&quot;</span><span class="s2">, label=</span><span class="s3">f&quot;RH=</span><span class="s4">{</span><span class="s2">target_RH</span><span class="s4">}</span><span class="s3">% (z=</span><span class="s4">{</span><span class="s2">target_zout</span><span class="s4">} </span><span class="s3">km)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlabel(</span><span class="s3">&quot;Solar Zenith Angle (°)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_ylabel(</span><span class="s3">&quot;Broadband Albedo (eup / edn)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_title(</span><span class="s3">&quot;Spectrally Integrated Albedo vs. SZA&quot;</span><span class="s2">)</span>
+<span class="s2">ax.grid(</span><span class="s1">True</span><span class="s2">, alpha=</span><span class="s5">0.3</span><span class="s2">)</span>
+<span class="s2">ax.legend()</span>
+<span class="s2">plt.tight_layout()</span>
+<span class="s2">plt.show()</span>
+<span class="s0">#%% 
+</span><span class="s2">target_zout = </span><span class="s5">0.0</span>
+<span class="s2">compare_RH = [</span><span class="s5">0</span><span class="s2">, </span><span class="s5">60</span><span class="s2">, </span><span class="s5">80</span><span class="s2">, </span><span class="s5">95</span><span class="s2">]</span>
+
+<span class="s2">fig, ax = plt.subplots(figsize=(</span><span class="s5">6</span><span class="s2">,</span><span class="s5">4</span><span class="s2">))</span>
+<span class="s1">for </span><span class="s2">rh </span><span class="s1">in </span><span class="s2">compare_RH:</span>
+    <span class="s2">subset = integrated_df.query(</span><span class="s3">&quot;RH == @rh and zout_km == @target_zout&quot;</span><span class="s2">).copy()</span>
+    <span class="s2">subset[</span><span class="s3">&quot;albedo&quot;</span><span class="s2">] = subset[</span><span class="s3">&quot;eup&quot;</span><span class="s2">] / subset[</span><span class="s3">&quot;edn&quot;</span><span class="s2">]</span>
+    <span class="s2">subset = subset.sort_values(</span><span class="s3">&quot;SZA&quot;</span><span class="s2">)</span>
+    <span class="s2">ax.plot(subset[</span><span class="s3">&quot;SZA&quot;</span><span class="s2">], subset[</span><span class="s3">&quot;albedo&quot;</span><span class="s2">], </span><span class="s3">&quot;o-&quot;</span><span class="s2">, label=</span><span class="s3">f&quot;RH=</span><span class="s4">{</span><span class="s2">rh</span><span class="s4">}</span><span class="s3">%&quot;</span><span class="s2">)</span>
+
+<span class="s2">ax.set_xlabel(</span><span class="s3">&quot;Solar Zenith Angle (°)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_ylabel(</span><span class="s3">&quot;Broadband Albedo (eup / edn)&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_title(</span><span class="s3">&quot;Broadband Albedo vs. SZA — Clear vs. Humid&quot;</span><span class="s2">)</span>
+<span class="s2">ax.grid(</span><span class="s1">True</span><span class="s2">, alpha=</span><span class="s5">0.3</span><span class="s2">)</span>
+<span class="s2">ax.legend()</span>
+<span class="s2">plt.tight_layout()</span>
+<span class="s2">plt.show()</span>
+<span class="s0">#%% 
+</span>
+<span class="s2">sns.set_theme(style=</span><span class="s3">&quot;darkgrid&quot;</span><span class="s2">, palette=</span><span class="s3">&quot;tab10&quot;</span><span class="s2">)</span>
+
+<span class="s0"># ✅ make a new figure + axis</span>
+<span class="s2">fig, ax = plt.subplots(figsize=(</span><span class="s5">10</span><span class="s2">,</span><span class="s5">5</span><span class="s2">))</span>
+
+<span class="s2">subset = sza_avg_df.query(</span><span class="s3">&quot;0 &lt; RH &lt;= 95&quot;</span><span class="s2">)</span>
+
+<span class="s2">sns.lineplot(</span>
+    <span class="s2">data=subset,</span>
+    <span class="s2">x=</span><span class="s3">&quot;RH&quot;</span><span class="s2">, y=</span><span class="s3">&quot;heat&quot;</span><span class="s2">, hue=</span><span class="s3">&quot;Exp&quot;</span><span class="s2">, marker=</span><span class="s3">&quot;o&quot;</span><span class="s2">, ax=ax,</span>
+    <span class="s2">errorbar=</span><span class="s1">None</span>
+<span class="s2">)</span>
+
+<span class="s2">ax.set_title(</span><span class="s3">&quot;Flux-weighted average upwelling flux vs RH&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_xlabel(</span><span class="s3">&quot;Relative Humidity [%]&quot;</span><span class="s2">)</span>
+<span class="s2">ax.set_ylabel(</span><span class="s3">&quot;Integrated Eup (∫ eup dλ, SZA-weighted)&quot;</span><span class="s2">)</span>
+<span class="s0">#ax.set_yscale(&quot;log&quot;)</span>
+<span class="s2">ax.legend(bbox_to_anchor=(</span><span class="s5">1.05</span><span class="s2">, </span><span class="s5">1</span><span class="s2">), loc=</span><span class="s3">&quot;upper left&quot;</span><span class="s2">)</span>
+
+<span class="s2">plt.tight_layout()</span>
+<span class="s2">plt.show()</span>
+<span class="s0">#%% 
+</span></pre>
+</body>
+</html>
