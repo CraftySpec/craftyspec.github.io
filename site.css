@@ -30,6 +30,8 @@ body::before{
   color: white;
   padding: 20px;
   text-align: center;
+  position: relative;
+  z-index: 1; /* ensure overlay button can sit above */
 }
 
 /* ---------- Layout ---------- */
@@ -43,7 +45,7 @@ body::before{
   align-items: start;
 }
 
-/* ---------- Sidebar ---------- */
+/* ---------- Sidebar (desktop) ---------- */
 .sidebar{
   background: rgba(0,0,0,0.78);
   color: white;
@@ -88,12 +90,64 @@ body::before{
 
 a{ color: #0066cc; }
 
-/* ---------- Mobile: convert sidebar to top nav ---------- */
+/* ---------- Mobile navigation drawer ---------- */
+.nav-toggle{
+  display: none; /* only visible on mobile */
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(0,0,0,0.75);
+  color: white;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* overlay backdrop */
+.nav-backdrop{
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1400;
+}
+
+/* ---------- Mobile breakpoint ---------- */
 @media (max-width: 900px){
   .layout{
     grid-template-columns: 1fr;
+    margin: 18px auto;
   }
+
+  /* show hamburger */
+  .nav-toggle{
+    display: block;
+  }
+
+  /* turn sidebar into off-canvas drawer */
   .sidebar{
-    position: static;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: min(320px, 85vw);
+    border-radius: 0;
+    transform: translateX(-105%);
+    transition: transform 180ms ease;
+    z-index: 1500;
+    overflow-y: auto;
+    padding-top: 70px; /* space for hamburger */
+  }
+
+  /* open state */
+  body.nav-open .sidebar{
+    transform: translateX(0);
+  }
+
+  body.nav-open .nav-backdrop{
+    display: block;
   }
 }
