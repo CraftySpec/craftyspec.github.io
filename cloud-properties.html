@@ -18,24 +18,28 @@
     <main class="container">
       <h2>Cloud property retrieval  from hyperspectral images </h2>
       <p>These figures and images show the retrieval of various cloud properties from measured hyperspectral images using radiative transfer modelling</p>
+      <p> Image below shows the retrived cloud top height (CTH) from radiative transfer modelled absorption depth of the oxygen A band at various cloud top altitudes, displayed CTH obtained from linear interpolation of model.</p>
 
       <figure class="figure-block">
         <img src="/figures/cth.png" alt="Retrieved cloud top height map" />
         <figcaption>
-          Cloud top height retrieved from measured O₂ A-band absorption near 760&nbsp;nm. Radiative transfer modelled absorption depth at various cloud top altitudes, displayed CTH obtained from linear interpolation of model.
+          Cloud top height retrieved from measured O₂ A-band absorption near 760&nbsp;nm. 
         </figcaption>
       </figure>
+       <p> Below is a modelled output look up table of the cloud droplet effective radius and cloud optical thickness. The radiance of these channels is coupled and must be calculated pairwise for the microphysical properties. </p>
 
       <figure class="figure-block">
         <img src="/figures/LUT.png" alt="Calculated Reflectance Values for range of τ and re values" />
         <figcaption>Calculated Radiance against cloud microphysical properties</figcaption>
       </figure>
+      <p> The image below shows the cloud optical thickness retrived by matching the measured radiances of each pixel to the nearest vertex on the lookup table able. </p>
 
       <figure class="figure-block">
         <img src="/figures/tau.png" alt="Retrieved optical thickness" />
         <figcaption>Retrieved values for cloud optical thickness (τ)</figcaption>
       </figure>
-
+     
+      <p> The image below shows the cloud droplet effective radius retrived by matching the measured radiances of each pixel to the nearest vertex on the lookup table able. </p>
       <figure class="figure-block">
         <img src="/figures/re.png" alt="Retrieved cloud droplet effective radius" />
         <figcaption>
