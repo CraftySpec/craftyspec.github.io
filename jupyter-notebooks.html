@@ -3,68 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chris Medcraft — Jupyter Notebooks</title>
+  <title>Jupyter Notebooks</title>
 
-  <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0;
-      background-image:url("IMG_20250227_155733473_HDR.jpg");
-      background-size:cover; background-position:center; background-repeat:no-repeat;
-      background-attachment:fixed; position:relative;
-    }
-    body::before { content:""; position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.45); z-index:-1; }
-
-    header { background:rgba(0,0,0,0.85); color:white; padding:20px; text-align:center; }
-
-    .layout { max-width:1200px; margin:40px auto; padding:0 16px;
-      display:grid; grid-template-columns:240px 1fr; gap:18px; align-items:start; }
-
-    .sidebar { background:rgba(0,0,0,0.78); color:white; border-radius:8px;
-      padding:18px 14px; box-shadow:0 2px 15px rgba(0,0,0,0.25);
-      position:sticky; top:18px; }
-
-    .sidebar h2 { margin:0 0 12px 0; font-size:1.05rem; font-weight:700; }
-
-    .nav a { display:block; padding:10px 10px; margin:6px 0; border-radius:6px;
-      text-decoration:none; color:white; background:rgba(255,255,255,0.10);
-      border:1px solid rgba(255,255,255,0.12); }
-    .nav a:hover { background:rgba(255,255,255,0.16); }
-    .nav a.active { background:rgba(78,161,255,0.20); border-color:rgba(78,161,255,0.45); }
-
-    .container { background:rgba(255,255,255,0.96); padding:25px; border-radius:8px;
-      box-shadow:0 2px 15px rgba(0,0,0,0.25); }
-
-    a { color:#0066cc; }
-
-    .file-link {
-      padding:12px; display:block; border-radius:6px; background:#e9f4ff;
-      text-decoration:none; margin-bottom:10px; border:1px solid #c8e1ff;
-    }
-    .file-link:hover { background:#dceeff; }
-  </style>
-</head>
-
+  <link rel="stylesheet" href="site.css">
+  <script src="site.js" defer></script>
 <body>
-  <header>
-    <h1>Chris Medcraft — Spectroscopist</h1>
-    <p>Public Portfolio</p>
-    <p>• Atmospheric Science • Spectroscopy • Radiative Transfer Calculations</p>
-    <p>• Interactive Maps • Scientific Visualisations</p>
-  </header>
+  <div id="site-header"></div>
 
   <div class="layout">
-    <nav class="sidebar">
-      <h2>Navigation</h2>
-      <div class="nav">
-        <a href="index.html">About</a>
-        <a href="cv.html">CV</a>
-        <a href="publications.html">Publications</a>
-        <a href="visualisations.html">Data Visualisations</a>
-        <a href="cloud-properties.html">Cloud properties</a>
-        <a class="active" href="jupyter-notebooks.html">Jupyter notebooks</a>
-      </div>
-    </nav>
+    <div id="site-nav"></div>
 
+
+      </div>
     <main class="container">
       <h2>Jupyter Notebooks</h2>
       <p>Rendered analysis notebooks generated from Python/Jupyter.</p>
