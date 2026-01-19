@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chris Medcraft — Publications</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-image: url("IMG_20250227_155733473_HDR.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: -1;
+    }
+
+    header {
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .layout {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .sidebar {
+      background: rgba(0,0,0,0.78);
+      color: white;
+      border-radius: 8px;
+      padding: 18px 14px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.25);
+      position: sticky;
+      top: 18px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 12px 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .nav a {
+      display: block;
+      padding: 10px 10px;
+      margin: 6px 0;
+      border-radius: 6px;
+      text-decoration: none;
+      color: white;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .nav a:hover { background: rgba(255,255,255,0.16); }
+    .nav a.active {
+      background: rgba(78, 161, 255, 0.20);
+      border-color: rgba(78, 161, 255, 0.45);
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.96);
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.25);
+    }
+
+    a { color: #0066cc; }
+
+    .top-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0 18px 0;
+    }
+    .pill {
+      display: inline-block;
+      padding: 10px 12px;
+      border-radius: 999px;
+      text-decoration: none;
+      border: 1px solid #c8e1ff;
+      background: #e9f4ff;
+      color: #003d7a;
+      font-weight: 600;
+    }
+    .pill:hover { background: #dceeff; }
+
+    .note {
+      margin: 10px 0 18px 0;
+      color: #333;
+      font-size: 0.95em;
+    }
+
+    .status {
+      margin: 10px 0 18px 0;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #fff3cd;
+      border: 1px solid #ffe69c;
+      color: #664d03;
+    }
+
+    .year {
+      margin-top: 26px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    ol.pubs {
+      margin: 0;
+      padding-left: 20px;
+    }
+    ol.pubs li {
+      margin: 10px 0;
+      line-height: 1.35;
+    }
+
+    .small {
+      font-size: 0.9em;
+      color: #444;
+    }
+  </style>
+
+  <!-- Citation.js (client-side BibTeX parsing + formatting) -->
+  <script src="https://unpkg.com/@citation-js/core@0.7.14/build/citation-js-core.umd.js"></script>
+  <script src="https://unpkg.com/@citation-js/plugin-bibtex@0.7.14/build/citation-js-plugin-bibtex.umd.js"></script>
+</head>
+
+<body>
+  <header>
+    <h1>Chris Medcraft — Spectroscopist</h1>
+    <p>Public Portfolio</p>
+    <p>• Atmospheric Science • Spectroscopy • Radiative Transfer Calculations</p>
+    <p>• Interactive Maps • Scientific Visualisations</p>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar">
+      <h2>Navigation</h2>
+      <div class="nav">
+        <a href="index.html">About</a>
+        <a href="cv.html">CV</a>
+        <a class="active" href="publications.html">Publications</a>
+        <a href="visualisations.html">Data Visualisations</a>
+        <a href="cloud-properties.html">Cloud properties</a>
+        <a href="jupyter-notebooks.html">Jupyter notebooks</a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <h2>Publications</h2>
+
+      <div class="top-links">
+        <a class="pill" href="https://scholar.google.com/citations?user=MJn2oBwAAAAJ&hl=en" target="_blank" rel="noopener">
+          Google Scholar profile
+        </a>
+        <a class="pill" href="https://orcid.org/0000-0002-3994-1276" target="_blank" rel="noopener">
+          ORCID: 0000-0002-3994-1276
+        </a>
+      </div>
+
+      <p class="note">
+        This list is generated from a BibTeX file in the repository (<code>publications.bib</code>).
+        To update it, export BibTeX from Google Scholar and replace that file.
+      </p>
+
+      <div id="status" class="status">Loading publications…</div>
+      <div id="pubs"></div>
+
+      <p class="small">
+        Tip: If you don’t see updates after pushing, hard refresh your browser (Ctrl+F5) due to caching.
+      </p>
+    </main>
+  </div>
+
+  <script>
+    async function loadBibtex(path) {
+      const res = await fetch(path, { cache: "no-store" });
+      if (!res.ok) throw new Error(`Could not load ${path} (HTTP ${res.status})`);
+      return await res.text();
+    }
+
+    function getYear(item) {
+      // Citation.js normalises date in several possible places
+      const issued = item.issued && item.issued["date-parts"] && item.issued["date-parts"][0];
+      if (issued && issued[0]) return String(issued[0]);
+
+      // Fallback: raw year fields
+      if (item.year) return String(item.year);
+      if (item.issued && item.issued.raw) {
+        const m = String(item.issued.raw).match(/\b(19|20)\d{2}\b/);
+        if (m) return m[0];
+      }
+      return "Unknown year";
+    }
+
+    function sortNewestFirst(a, b) {
+      const ya = parseInt(getYear(a), 10);
+      const yb = parseInt(getYear(b), 10);
+
+      if (!Number.isNaN(ya) && !Number.isNaN(yb) && ya !== yb) return yb - ya;
+      if (!Number.isNaN(ya) && Number.isNaN(yb)) return -1;
+      if (Number.isNaN(ya) && !Number.isNaN(yb)) return 1;
+
+      // Secondary sort: title
+      const ta = (a.title || "").toLowerCase();
+      const tb = (b.title || "").toLowerCase();
+      return ta.localeCompare(tb);
+    }
+
+    function renderGrouped(items) {
+      // Group items by year
+      const groups = new Map();
+      for (const it of items) {
+        const y = getYear(it);
+        if (!groups.has(y)) groups.set(y, []);
+        groups.get(y).push(it);
+      }
+
+      // Sort years descending (unknown last)
+      const years = Array.from(groups.keys()).sort((a, b) => {
+        const ia = parseInt(a, 10), ib = parseInt(b, 10);
+        if (!Number.isNaN(ia) && !Number.isNaN(ib)) return ib - ia;
+        if (!Number.isNaN(ia) && Number.isNaN(ib)) return -1;
+        if (Number.isNaN(ia) && !Number.isNaN(ib)) return 1;
+        return a.localeCompare(b);
+      });
+
+      const pubsDiv = document.getElementById("pubs");
+      pubsDiv.innerHTML = "";
+
+      let counter = 1;
+      for (const y of years) {
+        const section = document.createElement("section");
+
+        const h3 = document.createElement("h3");
+        h3.className = "year";
+        h3.textContent = y;
+        section.appendChild(h3);
+
+        const ol = document.createElement("ol");
+        ol.className = "pubs";
+        ol.start = counter;
+
+        const yearItems = groups.get(y).sort(sortNewestFirst);
+
+        for (const it of yearItems) {
+          // Format as "APA-ish" with citation-js
+          const cite = new Cite(it);
+          const html = cite.format("bibliography", {
+            format: "html",
+            template: "apa",
+            lang: "en-US"
+          });
+
+          // citation-js returns a <div class="csl-bib-body">...</div>
+          // We'll extract the inner text and use it per list item.
+          const tmp = document.createElement("div");
+          tmp.innerHTML = html;
+
+          const li = document.createElement("li");
+          li.innerHTML = tmp.textContent || tmp.innerHTML; // safe fallback
+          ol.appendChild(li);
+          counter += 1;
+        }
+
+        section.appendChild(ol);
+        pubsDiv.appendChild(section);
+      }
+    }
+
+    (async function main() {
+      const status = document.getElementById("status");
+      try {
+        // Path to your bibtex file (place publications.bib in repo root)
+        const bib = await loadBibtex("publications.bib");
+
+        // Parse BibTeX
+        const cite = new Cite(bib);
+        const items = cite.get({ type: "json" });
+
+        // Sort overall, then group
+        items.sort(sortNewestFirst);
+        renderGrouped(items);
+
+        status.textContent = `Loaded ${items.length} publications from publications.bib`;
+        status.style.background = "#d1e7dd";
+        status.style.borderColor = "#badbcc";
+        status.style.color = "#0f5132";
+      } catch (err) {
+        status.textContent = `Error: ${err.message}`;
+        status.style.background = "#f8d7da";
+        status.style.borderColor = "#f5c2c7";
+        status.style.color = "#842029";
+      }
+    })();
+  </script>
+</body>
+</html>
