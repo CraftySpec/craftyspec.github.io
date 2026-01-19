@@ -1,0 +1,34 @@
+/* Sidebar styling stays the same as your current .sidebar/.nav,
+   this file only adds the mobile collapse behavior */
+
+.menu-toggle {
+  display: none;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.10);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+
+  .sidebar {
+    position: static;
+    top: auto;
+  }
+
+  .menu-toggle { display: block; }
+
+  .nav {
+    display: none;
+    margin-top: 10px;
+  }
+
+  .sidebar.open .nav {
+    display: block;
+  }
+}
