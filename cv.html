@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chris Medcraft — Curriculum Vitae</title>
+  <title>Chris Medcraft — CV</title>
 
   <style>
     body {
@@ -15,19 +15,21 @@
       background-position: center;
       background-repeat: no-repeat;
       background-attachment: fixed;
+      position: relative;
     }
     body::before {
       content: "";
       position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.45);
       z-index: -1;
     }
 
     header {
-      background: rgba(0,0,0,0.85);
+      background: rgba(0, 0, 0, 0.85);
       color: white;
-      padding: 24px;
+      padding: 20px;
       text-align: center;
     }
 
@@ -38,168 +40,418 @@
       display: grid;
       grid-template-columns: 240px 1fr;
       gap: 18px;
+      align-items: start;
     }
 
     .sidebar {
       background: rgba(0,0,0,0.78);
       color: white;
       border-radius: 8px;
-      padding: 18px;
+      padding: 18px 14px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.25);
       position: sticky;
       top: 18px;
     }
 
+    .sidebar h2 {
+      margin: 0 0 12px 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
     .nav a {
       display: block;
-      padding: 10px;
+      padding: 10px 10px;
       margin: 6px 0;
       border-radius: 6px;
       text-decoration: none;
       color: white;
       background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
     }
-
+    .nav a:hover { background: rgba(255,255,255,0.16); }
     .nav a.active {
-      background: rgba(78,161,255,0.20);
+      background: rgba(78, 161, 255, 0.20);
+      border-color: rgba(78, 161, 255, 0.45);
     }
 
     .container {
-      background: rgba(255,255,255,0.96);
-      padding: 28px;
+      background: rgba(255, 255, 255, 0.96);
+      padding: 25px;
       border-radius: 8px;
       box-shadow: 0 2px 15px rgba(0,0,0,0.25);
     }
 
-    h2 {
-      margin-top: 32px;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 6px;
+    a { color: #0066cc; }
+
+    h2 { margin-top: 0; }
+    h3 { margin-bottom: 6px; }
+    h4 { margin: 14px 0 8px 0; }
+
+    .section { margin-bottom: 26px; }
+
+    .role {
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #e6e6e6;
+    }
+
+    .role:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .role-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+    }
+
+    .role-title {
+      font-weight: 800;
+      font-size: 1.02rem;
+    }
+
+    .role-org {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .role-dates {
+      font-weight: 600;
+      color: #444;
+      white-space: nowrap;
     }
 
     ul {
-      margin-top: 10px;
+      margin: 8px 0 0 0;
+      padding-left: 18px;
     }
 
-    li {
-      margin-bottom: 6px;
+    li { margin: 6px 0; line-height: 1.35; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .two-col { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
-<header>
-  <h1>Dr Chris Medcraft</h1>
-  <p>Spectroscopist | Physical Chemist</p>
-  <p>
-    chris.medcraft@gmail.com · +61 457 442 688 ·
-    <a href="https://craftyspec.github.io/" style="color:#9fd3ff;">Website</a> ·
-    <a href="https://bit.ly/ChrisMedcraft" style="color:#9fd3ff;">Google Scholar</a>
-  </p>
-</header>
+  <header>
+    <h1>Chris Medcraft — Spectroscopist</h1>
+    <p>Curriculum Vitae</p>
+    <p>• Atmospheric Science • Spectroscopy • Radiative Transfer Calculations</p>
+    <p>• Interactive Maps • Scientific Visualisations</p>
+  </header>
 
-<div class="layout">
-  <nav class="sidebar">
-    <div class="nav">
-      <a href="index.html">About</a>
-      <a class="active" href="cv.html">CV</a>
-      <a href="publications.html">Publications</a>
-      <a href="visualisations.html">Data Visualisations</a>
-      <a href="cloud-properties.html">Cloud Properties</a>
-      <a href="jupyter-notebooks.html">Jupyter Notebooks</a>
-    </div>
-  </nav>
+  <div class="layout">
+    <nav class="sidebar">
+      <h2>Navigation</h2>
+      <div class="nav">
+        <a href="index.html">About</a>
+        <a class="active" href="cv.html">CV</a>
+        <a href="publications.html">Publications</a>
+        <a href="visualisations.html">Data Visualisations</a>
+        <a href="cloud-properties.html">Cloud properties</a>
+        <a href="jupyter-notebooks.html">Jupyter notebooks</a>
+      </div>
+    </nav>
 
-  <main class="container">
+    <main class="container">
+      <h2>CV</h2>
 
-    <h2>Summary</h2>
-    <p>
-      Applied physical chemist and spectroscopist with over 15 years’ experience spanning
-      experimental spectroscopy, quantum chemistry, atmospheric science, radiative transfer
-      modelling, and large-scale data analysis. Extensive experience working across laboratory,
-      field, airborne, and high-performance computing environments, with a strong focus on
-      reproducible analysis, calibration, quality assurance, and scientific reporting.
-    </p>
+      <div class="section">
+        <h3>Professional Experience</h3>
 
-    <h2>Professional Experience</h2>
+        <div class="role">
+          <div class="role-head">
+            <div>
+              <div class="role-title">Research Fellow — Reef Restoration &amp; Adaptation Program</div>
+              <div class="role-org">Southern Cross University, National Marine Science Centre</div>
+            </div>
+            <div class="role-dates">July 2022 – 2025</div>
+          </div>
+          <ul>
+            <li>Design, deployment, operation, and calibration of atmospheric, aerosol, and optical instrumentation for field and airborne campaigns over the Great Barrier Reef.</li>
+            <li>Development of end-to-end radiative-transfer modelling workflows to quantify aerosol, fog, and cloud impacts on surface and downwelling solar irradiance.</li>
+            <li>Retrieval of cloud microphysical properties (cloud optical thickness, effective radius, cloud-top height) from airborne hyperspectral imagery using physically based spectral fitting and lookup-table methods.</li>
+            <li>Integration of hyperspectral imagery with meteorological, aerosol, and operational datasets to produce validated, reproducible data products.</li>
+            <li>Development of automated Python and R pipelines for large-scale data ingestion, reduction, quality control, statistical analysis, and visualisation.</li>
+            <li>Application of Mie scattering theory and aerosol microphysics to convert measured particle size distributions into optical properties.</li>
+            <li>Radiative-transfer modelling using libRadtran (DISORT, MYSTIC) to quantify spectral and broadband radiative forcing under varying aerosol and cloud regimes.</li>
+            <li>Design, execution, and analysis of controlled aerosol generation experiments, including fogging and marine aerosol analogue studies.</li>
+            <li>Management of laboratory facilities, including aerosol instrumentation, optical benches, calibration systems, and high-pressure fluid systems.</li>
+            <li>Preparation and maintenance of standard operating procedures (SOPs), risk assessments, and field safety documentation.</li>
+            <li>Supervision and technical training of undergraduate students, postgraduate students, postdoctoral researchers, and visiting scientists in laboratory, field, and data-analysis techniques.</li>
+            <li>Provision of hands-on training in instrument operation, calibration procedures, data analysis workflows, and scientific interpretation.</li>
+            <li>Preparation of internal technical reports, funding documentation, and peer-reviewed publications.</li>
+            <li>Cross-disciplinary collaboration with engineers, atmospheric scientists, ecologists, and remote-sensing specialists.</li>
+            <li>Regular presentation of technical results to internal stakeholders, external collaborators, and program partners.</li>
+          </ul>
+        </div>
 
-    <h3>Research Fellow — Reef Restoration & Adaptation Program (2022–2025)</h3>
-    <p>Southern Cross University, National Marine Science Centre</p>
-    <ul>
-      <li>Analysis of large multivariate datasets integrating meteorological, aerosol, environmental, and operational data</li>
-      <li>Development of automated radiative transfer pipelines for hyperspectral imagery</li>
-      <li>Retrieval of surface height, cloud optical thickness, and effective radius from spectral data</li>
-      <li>Radiative transfer modelling of scattering to quantify radiative flux and albedo of ocean fog</li>
-      <li>Operation of atmospheric research aircraft and airborne hyperspectral systems</li>
-      <li>Management of aerosol testing laboratory, instrumentation, and personnel</li>
-      <li>Preparation of technical reports, SOPs, and risk assessments</li>
-    </ul>
+        <div class="role">
+          <div class="role-head">
+            <div>
+              <div class="role-title">Lecturer &amp; ARC DECRA Fellow</div>
+              <div class="role-org">School of Chemistry, UNSW Sydney</div>
+            </div>
+            <div class="role-dates">2018 – 2022</div>
+          </div>
+          <ul>
+            <li>Awarded an Australian Research Council Discovery Early Career Researcher Award (DECRA) to establish an independent research program in high-resolution spectroscopy and molecular structure.</li>
+            <li>Designed, built, commissioned, and operated Australia’s first chirped-pulse broadband microwave spectrometer, including vacuum systems, microwave electronics, timing electronics, and control software.</li>
+            <li>Development of custom hardware and software for data acquisition, signal processing, spectral fitting, and automation.</li>
+            <li>Performed high-level quantum chemical calculations (DFT, MP2, CCSD(T)) on high-performance computing systems to support experimental interpretation.</li>
+            <li>Led independent research projects involving molecular clusters, non-covalent interactions, and weakly bound complexes.</li>
+            <li>Supervised Honours, PhD, and summer research students, providing training in experimental spectroscopy, data analysis, and scientific writing.</li>
+            <li>Delivered undergraduate teaching in physical chemistry, spectroscopy, and laboratory courses.</li>
+            <li>Designed laboratory experiments, assessments, marking rubrics, and examination materials.</li>
+            <li>Provided laboratory supervision, safety inductions, and training for undergraduate cohorts.</li>
+            <li>Contributed to curriculum development and course coordination.</li>
+            <li>Actively mentored students transitioning from coursework to research environments.</li>
+            <li>Managed laboratory budgets, consumables, and equipment procurement.</li>
+            <li>Published multiple peer-reviewed articles as lead and corresponding author.</li>
+            <li>Associate Fellow of the Higher Education Academy (AFHEA).</li>
+          </ul>
+        </div>
 
-    <h3>Lecturer & ARC DECRA Fellow — UNSW Sydney (2018–2022)</h3>
-    <ul>
-      <li>Recipient of Discovery Early Career Research Award (>$350k)</li>
-      <li>Construction of Australia’s first chirped-pulse microwave spectrometer</li>
-      <li>Large-scale quantum chemistry calculations for non-covalent molecular clusters</li>
-      <li>Undergraduate teaching, assessment design, and student supervision</li>
-      <li>Associate Fellow of the Higher Education Academy (AFHEA)</li>
-    </ul>
+        <div class="role">
+          <div class="role-head">
+            <div>
+              <div class="role-title">Postdoctoral Research Fellow</div>
+              <div class="role-org">Max Planck Institute for Structure and Dynamics of Matter (Germany)</div>
+            </div>
+            <div class="role-dates">2016 – 2018</div>
+          </div>
+          <ul>
+            <li>Conducted high-resolution rotational spectroscopy of complex molecular systems using broadband microwave techniques.</li>
+            <li>Designed and aligned optical and microwave components for precision spectroscopic measurements.</li>
+            <li>Performed large-scale ab initio quantum chemical calculations to determine molecular structures, energetics, and spectroscopic constants.</li>
+            <li>Developed reproducible workflows for spectral assignment, fitting, and comparison with theory.</li>
+            <li>Supervised undergraduate and graduate students in laboratory techniques and data analysis.</li>
+            <li>Contributed to proposal writing, progress reporting, and peer-reviewed publications.</li>
+            <li>Collaborated internationally with experimentalists and theorists.</li>
+          </ul>
+        </div>
 
-    <h3>Postdoctoral Research Fellowships (2013–2018)</h3>
-    <p>
-      Max Planck Institute (Germany) · Newcastle University (UK) · Vrije Universiteit Amsterdam (Netherlands)
-    </p>
-    <ul>
-      <li>High-resolution spectroscopy and coupled-cluster quantum chemistry</li>
-      <li>Optical system design and alignment for UV and microwave spectroscopy</li>
-      <li>Development of reproducible data pipelines and QA frameworks</li>
-      <li>Multiple peer-reviewed publications per appointment</li>
-    </ul>
+        <div class="role">
+          <div class="role-head">
+            <div>
+              <div class="role-title">Postdoctoral Research Fellow</div>
+              <div class="role-org">Newcastle University (UK)</div>
+            </div>
+            <div class="role-dates">2014 – 2016</div>
+          </div>
+          <ul>
+            <li>High-resolution spectroscopy of isolated molecules and weakly bound complexes in the gas phase.</li>
+            <li>Operation and maintenance of laser-based spectroscopic systems, including FTIR and microwave instruments.</li>
+            <li>Development of analysis scripts for spectral fitting, uncertainty estimation, and reporting.</li>
+            <li>Supervision and training of undergraduate project students.</li>
+            <li>Contribution to teaching laboratories and student mentoring.</li>
+            <li>Publication of experimental and theoretical results in peer-reviewed journals.</li>
+          </ul>
+        </div>
 
-    <h2>Education</h2>
-    <ul>
-      <li>PhD, Physical Chemistry — Monash University (2009–2013)</li>
-      <li>BSc (Hons I), Chemistry — Monash University (2004–2008)</li>
-    </ul>
+        <div class="role">
+          <div class="role-head">
+            <div>
+              <div class="role-title">Postdoctoral Research Fellow</div>
+              <div class="role-org">Vrije Universiteit Amsterdam (Netherlands)</div>
+            </div>
+            <div class="role-dates">2013 – 2014</div>
+          </div>
+          <ul>
+            <li>Experimental spectroscopy of cold molecular species and clusters.</li>
+            <li>Optical alignment and operation of cavity ring-down and UV spectroscopic systems.</li>
+            <li>Integration of experimental measurements with quantum chemical modelling.</li>
+            <li>Mentoring of students and junior researchers in spectroscopy and data analysis.</li>
+            <li>Active participation in group teaching and training activities.</li>
+          </ul>
+        </div>
 
-    <h2>Technical & Analytical Skills</h2>
-    <ul>
-      <li>Python, R, SQL, Bash, Excel</li>
-      <li>Radiative transfer modelling, spectral retrievals, machine learning</li>
-      <li>High-performance and cloud computing workflows</li>
-      <li>Automated QA/QC, data reduction, validation, and visualisation</li>
-    </ul>
+        <div class="role">
+          <div class="role-head">
+            <div>
+              <div class="role-title">Doctoral Researcher</div>
+              <div class="role-org">Monash University</div>
+            </div>
+            <div class="role-dates">2009 – 2013</div>
+          </div>
+          <ul>
+            <li>PhD research focused on infrared spectroscopy of cold molecules and aerosols.</li>
+            <li>Design and operation of high-resolution FTIR spectroscopy experiments.</li>
+            <li>Analysis of rovibrational spectra with advanced fitting techniques.</li>
+            <li>Development of custom analysis scripts for spectral processing and uncertainty analysis.</li>
+            <li>Contribution to undergraduate laboratory demonstrating and tutoring.</li>
+            <li>Supervision of undergraduate research students.</li>
+            <li>Presentation of research at national and international conferences.</li>
+            <li>Publication of doctoral research in peer-reviewed journals.</li>
+          </ul>
+        </div>
+      </div>
 
-    <h2>Instrumentation & Experimental Expertise</h2>
-    <ul>
-      <li>FTIR, Raman, UV/Vis, microwave, cavity ring-down spectroscopy</li>
-      <li>Laser systems: solid-state, dye, OPO/OPA; nonlinear optics</li>
-      <li>Mie scattering, particle sizing, aerosol instrumentation</li>
-      <li>High-pressure gas and liquid flow systems</li>
-    </ul>
+      <div class="section">
+        <h3>Teaching Experience</h3>
+        <ul>
+          <li><strong>Jul 2022 – present</strong> Research Fellow, Reef Restoration and Adaptation Program (RRAP), National Marine Science Centre, Southern Cross University — Development and delivery of mathematics workshops; Development of spectroscopy workshops; Mentoring and supervision of research students.</li>
+          <li><strong>Dec 2018 – Jul 2022</strong> Discovery Early Career Research Fellow, School of Chemistry, University of New South Wales — Elected as Associate Fellow Higher Education Academy; 4th year atmospheric chemistry course; Coordination, preparation, and presentation of lecture material; Designed and marked assessment material; Development of 2nd year physical chemistry lectures and videos; Invited Lecture-Universität zu Kiel – Atmospheric Chemistry; Supervision of Honours and undergraduate research students; Experienced in online teaching tools: Blackboard collaborate, Moodle, Teams &amp; Zoom; Undergraduate laboratory supervision and direction 2nd Year Physical Chemistry; Development and implementation of online labs using Blackboard collaborate and iPython Notebooks for data analysis; 3rd Year Physical Chemistry &amp; 2nd Year Analytical Chemistry.</li>
+          <li><strong>Sep 2017 – Sep 2018</strong> Post-Doctoral Research Fellow, LaserLab, Vrije Universiteit, Amsterdam Council — Supervision and direction of undergraduate project student.</li>
+          <li><strong>13/10/15 – 01/09/17</strong> Post-Doctoral Research Fellow, School of Chemistry, Newcastle University, UK — Training and supervision of four undergraduate project and exchange students.</li>
+          <li><strong>Jan 2013 – Oct 2015</strong> Post-Doctoral Research Fellow, Max Planck Institute for the Structure and Dynamics of Matter, Hamburg — Trained new group members in experimental techniques; Guided undergraduate and postgraduate students through to analysis procedures.</li>
+          <li><strong>Feb 2009 – May 2013</strong> PhD Student, Monash University, Melbourne, Australia — Undergraduate laboratory supervision and direction; Chemistry for Engineers – First Year Course; Spectroscopy and Analytical Chemistry – Second Year Course; Advanced Physical Chemistry – Third Year Course.</li>
+        </ul>
+      </div>
 
-    <h2>Teaching, Supervision & Training</h2>
-    <ul>
-      <li>Undergraduate to Honours teaching and supervision</li>
-      <li>Safety inductions and laboratory training</li>
-      <li>Assessment design and student performance analysis</li>
-    </ul>
+      <div class="section">
+        <h3>Education</h3>
+        <ul>
+          <li><strong>Feb 2009 – May 2013</strong> Doctor of Philosophy, School of Chemistry, Monash University — Prof. Don McNaughton, Dr. Evan Robertson and Dr. Dominque Appadoo — Date of Conferral: 17th December 2013</li>
+          <li><strong>Mar 2004 – Aug 2008</strong> Bachelor of Science - Honours (First class), School of Chemistry, Monash University — Major: Chemistry (Double) — Minor: Mathematics &amp; Astrophysics — Honours Thesis: Infrared Spectroscopy of Ozone and Hydrogen Chloride Aerosols</li>
+        </ul>
+      </div>
 
-    <h2>Professional Service & Outreach</h2>
-    <ul>
-      <li>Peer reviewer for PCCP, JQSRT, Spectrochimica Acta, JMS</li>
-      <li>UNSW Chemistry Society — Secretary</li>
-      <li>Australian Synchrotron Open Day & Pint of Science outreach</li>
-    </ul>
+      <div class="section">
+        <h3>Funding, Fellowships and Awards</h3>
+        <ul>
+          <li>Mar 2021– Aug 2021 Approx. $11,500 — DAAD Research Stays for University Academics and Scientists</li>
+          <li>Jan 2021 — Associate Fellow Higher Education Academy</li>
+          <li>Aug 2019 – Jun 2022: Approx. $9,000 — RSC Researcher Mobility Grant King’s College London</li>
+          <li>Jun 2019 — RSC Travel Grant Approx. $3000</li>
+          <li>Mar 2019 – present Approx. in kind $1Mio — Australian synchrotron beamtime allocation</li>
+          <li>Dec. 2018 – Jul 2022 $353,700 — Discovery Early Career Researcher Award — University of New South Wales</li>
+          <li>Feb 2009 – Feb 2012 Approx. $30,000 — Australian Synchrotron Postgraduate Award — Australian Synchrotron</li>
+          <li>Feb 2009 – Dec 2012 Approx. $60,000 — Australian Postgraduate Award</li>
+        </ul>
+      </div>
 
-    <h2>Qualifications & Memberships</h2>
-    <ul>
-      <li>Associate Fellow, Higher Education Academy</li>
-      <li>Member, Royal Society of Chemistry (AMRSC)</li>
-      <li>Member, Royal Australian Chemical Institute</li>
-      <li>High Risk Work Licence (Forklift)</li>
-      <li>First Aid & Working With Children Check (NSW)</li>
-    </ul>
+      <div class="section">
+        <h3>Key Skills and Expertise</h3>
 
-  </main>
-</div>
+        <h4>Data Analytics: predictive modelling, coding and software development</h4>
+        <ul>
+          <li>High-performance cloud-based computing for quantum chemistry calculations &amp; automated predictive modelling</li>
+          <li>Machine learning search for unknown experimental parameters of measured spectra</li>
+          <li>Automated data ingest, reduction and quality assurance/control using Bash, R and Python.</li>
+          <li>Data analysis, modelling, visualisation and reporting using Python, R, PowerBi, ENVI, ArcGIS, Excel</li>
+          <li>Scientific instrument control and communication via Python, C++, LabVIEW, Virtual instrument software architecture (VISA)</li>
+          <li>Cloud and high-performance computing for quantum chemistry calculations(CCSD(T), MPn, DFT, MM)</li>
+          <li>Radiative transfer modelling of hyperspectral images for extraction meteorological parameters</li>
+          <li>Scientific instrument control and communication via Python, C++, LabVIEW, Virtual instrument software architecture (VISA)</li>
+        </ul>
+
+        <h4>Scientific techniques, instrumentation and technical</h4>
+        <ul>
+          <li>High resolution molecular spectroscopy and quantum chemistry calculations</li>
+          <li>Optical design, alignment and optimisation for FTIR, laser spectroscopy and particle sizing using Mie Scattering</li>
+          <li>Expertise in modelling of absorption, scattering, &amp; polarisation using modern software tools</li>
+          <li>Skilled in laser maintenance, alignment, safety and integration into spectroscopy systems: pulsed solid-state, dye, OPO/OPA</li>
+          <li>Non-linear optics: frequency doubling, sum/difference frequency generation.</li>
+          <li>Extensive hands-on experience in the design, alignment, and optimisation of optical systems for spectroscopic instrumentation: FTIR, Raman spectroscopy, UV/Vis, microwave, laser absorption/fluorescence, and cavity ring-down</li>
+          <li>Expertise in laboratory and field-based techniques for quantitative and qualitative spectroscopy including:</li>
+          <li>Fourier transform (interferometer) infrared spectroscopy, Raman scattering, Fourier transform microwave spectroscopy, cavity ring down spectroscopy, UV/Visible spectroscopy, multi-dimensional spectroscopy, microwave four-way mixing</li>
+          <li>Design and testing of optoelectronics, MW and RF circuits - detection schemes, signal conditioning and high-speed timing</li>
+          <li>Qualitative and quantitative supersonic expansion sampling of solids, liquids, gases, transient radicals and photoproducts</li>
+          <li>Laser ablation and laser desorption, head space sampling, high voltage pulsed discharge, RF discharge</li>
+          <li>Airborne hyperspectral imaging – acquisition, data management and analysis</li>
+        </ul>
+
+        <h4>Safety and operational</h4>
+        <ul>
+          <li>Strengthened laboratory safety protocols for laser, chemical, electrical, and cryogenic systems through hands-on safety inductions, access control measures, improved safety sensors and mechanical interlocks safety guards.</li>
+          <li>Developed and maintained standard operating procedures and detailed risk assessments and tailored training for students, researchers, and technical staff.</li>
+        </ul>
+
+        <h4>Project Management</h4>
+        <ul>
+          <li>Led projects from initial specification to delivery, coordinating engineers, scientists and students.</li>
+          <li>Delivered over $1 million in competitive grant funding; authored internal reports, SOPs and risk assessments.</li>
+          <li>Coordinating with multidisciplinary users and facility staff to support instrument development and experimental campaigns</li>
+          <li>Synthesis of internal briefing reports, standard operating procedures and risk assessment</li>
+          <li>Oversaw timelines, budgets, and stakeholder coordination for successful instrument development and deployment.</li>
+        </ul>
+
+        <h4>Personnel Management and Training</h4>
+        <ul>
+          <li>Trained students, graduates and visitors in safety and experimental and analytical techniques</li>
+          <li>Supervised and mentored undergraduate, honours, and graduate researchers</li>
+          <li>Designed and delivered coursework and assessment for physical, analytical, and atmospheric chemistry.</li>
+        </ul>
+
+        <h4>Instrumentation, Service &amp; Calibration</h4>
+        <ul>
+          <li>Calibration, servicing, and fault diagnosis of scientific and environmental monitoring instruments</li>
+          <li>ISO-aligned calibration procedures (ISO 9001 / 17025 awareness)</li>
+          <li>Instrument commissioning, verification, and maintenance reporting</li>
+          <li>Gas, aerosol, optical, meteorological, and environmental sensors</li>
+        </ul>
+
+        <h4>Field and Customer Support</h4>
+        <ul>
+          <li>On-site installation, inspection, and repair</li>
+          <li>Technical customer support and application guidance</li>
+          <li>Independent time management and scheduling</li>
+        </ul>
+
+        <h4>Data Analysis &amp; Programming</h4>
+        <ul>
+          <li>Proficient in Microsoft Office (Excel, PowerPoint, Word &amp; Outlook) for documentation, analysis, presentation and reporting</li>
+          <li>Instrument control and communication Python, R, C++, LabVIEW (VISA).</li>
+          <li>Automated QA/QC pipelines, data reduction, visualisation and statistical analysis using Python and R.</li>
+          <li>Data visualisation and reporting (Power BI, ArcGIS, ENVI, Matplotlib).</li>
+        </ul>
+
+        <h4>Experimental &amp; Instrument Development</h4>
+        <ul>
+          <li>Optical and spectroscopic system design, construction, and troubleshooting.</li>
+          <li>Development of measurement methodologies for quantitative analysis using scattering, absorption and emission.</li>
+          <li>Field and airborne instrument deployment and maintenance.</li>
+        </ul>
+
+        <h4>Safety &amp; Quality Assurance</h4>
+        <ul>
+          <li>Laser, chemical, cryogenic, and electrical safety management.</li>
+          <li>SOP and risk assessment authoring; training for students and staff.</li>
+          <li>Laboratory QA system development aligned with ISO standards.</li>
+        </ul>
+
+        <h4>Project &amp; Personnel Management</h4>
+        <ul>
+          <li>Coordinating with multidisciplinary users and facility staff to support instrument development and experimental campaigns</li>
+          <li>Led multi-institutional projects from concept to delivery.</li>
+          <li>Delivered over $1 million in competitive grant funding</li>
+          <li>Managed budgets, equipment procurement, and project milestones.</li>
+          <li>Supervised and mentored undergraduate and postgraduate researchers.</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Qualifications and Licences</h3>
+        <ul>
+          <li>Member of the Royal Society of Chemistry (AMRSC)</li>
+          <li>Member of the Royal Australian Chemical Institute</li>
+          <li>High Risk Work Licence (Forklift)</li>
+          <li>Current First Aid training</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Professional and Outreach Activities</h3>
+        <ul>
+          <li>Peer-review Contributions: Physical Chemistry Chemical Physics; Journal of Quantitative Spectroscopy &amp; Radiative Transfer; Spectrochimica Acta; Journal of Molecular Spectroscopy</li>
+          <li>UNSW Chemistry Society – Secretary: Organised scientific talks and receptions for scientists and members of the public</li>
+          <li>Australian Synchrotron Open Day: Engaged with public visitors and explained scientific methods and results</li>
+        </ul>
+      </div>
+
+    </main>
+  </div>
 </body>
 </html>
