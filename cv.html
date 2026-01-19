@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chris Medcraft — Curriculum Vitae</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-image: url("IMG_20250227_155733473_HDR.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: -1;
+    }
+
+    header {
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .layout {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 18px;
+    }
+
+    .sidebar {
+      background: rgba(0,0,0,0.78);
+      color: white;
+      border-radius: 8px;
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .nav a {
+      display: block;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 6px;
+      text-decoration: none;
+      color: white;
+      background: rgba(255,255,255,0.10);
+    }
+
+    .nav a.active {
+      background: rgba(78,161,255,0.20);
+    }
+
+    .container {
+      background: rgba(255,255,255,0.96);
+      padding: 28px;
+      border-radius: 8px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.25);
+    }
+
+    h2 {
+      margin-top: 32px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
+    }
+
+    ul {
+      margin-top: 10px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Dr Chris Medcraft</h1>
+  <p>Spectroscopist | Physical Chemist</p>
+  <p>
+    chris.medcraft@gmail.com · +61 457 442 688 ·
+    <a href="https://craftyspec.github.io/" style="color:#9fd3ff;">Website</a> ·
+    <a href="https://bit.ly/ChrisMedcraft" style="color:#9fd3ff;">Google Scholar</a>
+  </p>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="nav">
+      <a href="index.html">About</a>
+      <a class="active" href="cv.html">CV</a>
+      <a href="publications.html">Publications</a>
+      <a href="visualisations.html">Data Visualisations</a>
+      <a href="cloud-properties.html">Cloud Properties</a>
+      <a href="jupyter-notebooks.html">Jupyter Notebooks</a>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <h2>Summary</h2>
+    <p>
+      Applied physical chemist and spectroscopist with over 15 years’ experience spanning
+      experimental spectroscopy, quantum chemistry, atmospheric science, radiative transfer
+      modelling, and large-scale data analysis. Extensive experience working across laboratory,
+      field, airborne, and high-performance computing environments, with a strong focus on
+      reproducible analysis, calibration, quality assurance, and scientific reporting.
+    </p>
+
+    <h2>Professional Experience</h2>
+
+    <h3>Research Fellow — Reef Restoration & Adaptation Program (2022–2025)</h3>
+    <p>Southern Cross University, National Marine Science Centre</p>
+    <ul>
+      <li>Analysis of large multivariate datasets integrating meteorological, aerosol, environmental, and operational data</li>
+      <li>Development of automated radiative transfer pipelines for hyperspectral imagery</li>
+      <li>Retrieval of surface height, cloud optical thickness, and effective radius from spectral data</li>
+      <li>Radiative transfer modelling of scattering to quantify radiative flux and albedo of ocean fog</li>
+      <li>Operation of atmospheric research aircraft and airborne hyperspectral systems</li>
+      <li>Management of aerosol testing laboratory, instrumentation, and personnel</li>
+      <li>Preparation of technical reports, SOPs, and risk assessments</li>
+    </ul>
+
+    <h3>Lecturer & ARC DECRA Fellow — UNSW Sydney (2018–2022)</h3>
+    <ul>
+      <li>Recipient of Discovery Early Career Research Award (>$350k)</li>
+      <li>Construction of Australia’s first chirped-pulse microwave spectrometer</li>
+      <li>Large-scale quantum chemistry calculations for non-covalent molecular clusters</li>
+      <li>Undergraduate teaching, assessment design, and student supervision</li>
+      <li>Associate Fellow of the Higher Education Academy (AFHEA)</li>
+    </ul>
+
+    <h3>Postdoctoral Research Fellowships (2013–2018)</h3>
+    <p>
+      Max Planck Institute (Germany) · Newcastle University (UK) · Vrije Universiteit Amsterdam (Netherlands)
+    </p>
+    <ul>
+      <li>High-resolution spectroscopy and coupled-cluster quantum chemistry</li>
+      <li>Optical system design and alignment for UV and microwave spectroscopy</li>
+      <li>Development of reproducible data pipelines and QA frameworks</li>
+      <li>Multiple peer-reviewed publications per appointment</li>
+    </ul>
+
+    <h2>Education</h2>
+    <ul>
+      <li>PhD, Physical Chemistry — Monash University (2009–2013)</li>
+      <li>BSc (Hons I), Chemistry — Monash University (2004–2008)</li>
+    </ul>
+
+    <h2>Technical & Analytical Skills</h2>
+    <ul>
+      <li>Python, R, SQL, Bash, Excel</li>
+      <li>Radiative transfer modelling, spectral retrievals, machine learning</li>
+      <li>High-performance and cloud computing workflows</li>
+      <li>Automated QA/QC, data reduction, validation, and visualisation</li>
+    </ul>
+
+    <h2>Instrumentation & Experimental Expertise</h2>
+    <ul>
+      <li>FTIR, Raman, UV/Vis, microwave, cavity ring-down spectroscopy</li>
+      <li>Laser systems: solid-state, dye, OPO/OPA; nonlinear optics</li>
+      <li>Mie scattering, particle sizing, aerosol instrumentation</li>
+      <li>High-pressure gas and liquid flow systems</li>
+    </ul>
+
+    <h2>Teaching, Supervision & Training</h2>
+    <ul>
+      <li>Undergraduate to Honours teaching and supervision</li>
+      <li>Safety inductions and laboratory training</li>
+      <li>Assessment design and student performance analysis</li>
+    </ul>
+
+    <h2>Professional Service & Outreach</h2>
+    <ul>
+      <li>Peer reviewer for PCCP, JQSRT, Spectrochimica Acta, JMS</li>
+      <li>UNSW Chemistry Society — Secretary</li>
+      <li>Australian Synchrotron Open Day & Pint of Science outreach</li>
+    </ul>
+
+    <h2>Qualifications & Memberships</h2>
+    <ul>
+      <li>Associate Fellow, Higher Education Academy</li>
+      <li>Member, Royal Society of Chemistry (AMRSC)</li>
+      <li>Member, Royal Australian Chemical Institute</li>
+      <li>High Risk Work Licence (Forklift)</li>
+      <li>First Aid & Working With Children Check (NSW)</li>
+    </ul>
+
+  </main>
+</div>
+</body>
+</html>
