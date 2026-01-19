@@ -85,6 +85,23 @@
 
     a { color: #0066cc; }
     .section { margin-bottom: 30px; }
+
+    /* ------------------------------
+       Profile picture
+    ------------------------------ */
+    .profile {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .profile img {
+      width: 180px;
+      height: auto;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.9);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.35);
+    }
   </style>
 </head>
 
@@ -111,6 +128,12 @@
 
     <main class="container">
       <div class="section">
+
+        <!-- Profile picture -->
+        <div class="profile">
+          <img src="profilepic.jpg" alt="Chris Medcraft" />
+        </div>
+
         <h2>About</h2>
         <p>
           I am a physical chemist with extensive experience designing, building, optimising,
