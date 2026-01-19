@@ -191,18 +191,33 @@
   </div>
 
   <script>
+    function getCiteConstructor() {
+      // Some builds expose global Cite, others expose a CommonJS-style require()
+      if (typeof window.Cite !== "undefined") return window.Cite;
+  
+      if (typeof window.require !== "undefined") {
+        try {
+          const mod = window.require("citation-js");
+          // Some bundlers return a function directly, some return { Cite }
+          if (typeof mod === "function") return mod;
+          if (mod && typeof mod.Cite === "function") return mod.Cite;
+        } catch (e) {
+          // fall through to error below
+        }
+      }
+  
+      return null;
+    }
+  
     async function loadBibtex(path) {
       const res = await fetch(path, { cache: "no-store" });
       if (!res.ok) throw new Error(`Could not load ${path} (HTTP ${res.status})`);
       return await res.text();
     }
-
+  
     function getYear(item) {
-      // Citation.js normalises date in several possible places
       const issued = item.issued && item.issued["date-parts"] && item.issued["date-parts"][0];
       if (issued && issued[0]) return String(issued[0]);
-
-      // Fallback: raw year fields
       if (item.year) return String(item.year);
       if (item.issued && item.issued.raw) {
         const m = String(item.issued.raw).match(/\b(19|20)\d{2}\b/);
@@ -210,31 +225,28 @@
       }
       return "Unknown year";
     }
-
+  
     function sortNewestFirst(a, b) {
       const ya = parseInt(getYear(a), 10);
       const yb = parseInt(getYear(b), 10);
-
+  
       if (!Number.isNaN(ya) && !Number.isNaN(yb) && ya !== yb) return yb - ya;
       if (!Number.isNaN(ya) && Number.isNaN(yb)) return -1;
       if (Number.isNaN(ya) && !Number.isNaN(yb)) return 1;
-
-      // Secondary sort: title
+  
       const ta = (a.title || "").toLowerCase();
       const tb = (b.title || "").toLowerCase();
       return ta.localeCompare(tb);
     }
-
-    function renderGrouped(items) {
-      // Group items by year
+  
+    function renderGrouped(CiteCtor, items) {
       const groups = new Map();
       for (const it of items) {
         const y = getYear(it);
         if (!groups.has(y)) groups.set(y, []);
         groups.get(y).push(it);
       }
-
-      // Sort years descending (unknown last)
+  
       const years = Array.from(groups.keys()).sort((a, b) => {
         const ia = parseInt(a, 10), ib = parseInt(b, 10);
         if (!Number.isNaN(ia) && !Number.isNaN(ib)) return ib - ia;
@@ -242,64 +254,68 @@
         if (Number.isNaN(ia) && !Number.isNaN(ib)) return 1;
         return a.localeCompare(b);
       });
-
+  
       const pubsDiv = document.getElementById("pubs");
       pubsDiv.innerHTML = "";
-
+  
       let counter = 1;
       for (const y of years) {
         const section = document.createElement("section");
-
+  
         const h3 = document.createElement("h3");
         h3.className = "year";
         h3.textContent = y;
         section.appendChild(h3);
-
+  
         const ol = document.createElement("ol");
         ol.className = "pubs";
         ol.start = counter;
-
+  
         const yearItems = groups.get(y).sort(sortNewestFirst);
-
+  
         for (const it of yearItems) {
-          // Format as "APA-ish" with citation-js
-          const cite = new Cite(it);
+          const cite = new CiteCtor(it);
+  
           const html = cite.format("bibliography", {
             format: "html",
             template: "apa",
             lang: "en-US"
           });
-
-          // citation-js returns a <div class="csl-bib-body">...</div>
-          // We'll extract the inner text and use it per list item.
+  
           const tmp = document.createElement("div");
           tmp.innerHTML = html;
-
+  
           const li = document.createElement("li");
-          li.innerHTML = tmp.textContent || tmp.innerHTML; // safe fallback
+          // Use innerHTML (keeps italics etc.)
+          li.innerHTML = tmp.innerHTML;
           ol.appendChild(li);
           counter += 1;
         }
-
+  
         section.appendChild(ol);
         pubsDiv.appendChild(section);
       }
     }
-
+  
     (async function main() {
       const status = document.getElementById("status");
       try {
-        // Path to your bibtex file (place publications.bib in repo root)
+        const CiteCtor = getCiteConstructor();
+        if (!CiteCtor) {
+          throw new Error(
+            "Citation.js loaded, but the Cite constructor was not found. " +
+            "Check js/citation.min.js is correct and loads without 404."
+          );
+        }
+  
         const bib = await loadBibtex("publications.bib");
-
-        // Parse BibTeX
-        const cite = new Cite(bib);
+  
+        const cite = new CiteCtor(bib);
         const items = cite.get({ type: "json" });
-
-        // Sort overall, then group
+  
         items.sort(sortNewestFirst);
-        renderGrouped(items);
-
+        renderGrouped(CiteCtor, items);
+  
         status.textContent = `Loaded ${items.length} publications from publications.bib`;
         status.style.background = "#d1e7dd";
         status.style.borderColor = "#badbcc";
