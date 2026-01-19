@@ -151,3 +151,30 @@ a{ color: #0066cc; }
     display: block;
   }
 }
+
+/* ---------- Mobile bottom nav ---------- */
+#mobile-nav{
+  display: none;
+}
+
+@media (max-width: 900px){
+  #mobile-nav{
+    display: block;
+    margin: 30px 16px 20px;
+  }
+
+  #mobile-nav .sidebar{
+    position: static;
+    transform: none !important;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  /* Hide the "Navigation" heading in footer version */
+  #mobile-nav .sidebar h2{
+    display: none;
+  }
+}
+
