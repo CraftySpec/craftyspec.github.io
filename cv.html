@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chris Medcraft — CV</title>
 
-  <!-- Global styles + nav -->
+  <!-- Global styles + global includes -->
   <link rel="stylesheet" href="site.css">
   <script src="site.js" defer></script>
 
@@ -51,18 +51,11 @@
   </style>
 </head>
 
-<body data-active="cv">
-  <!-- Global header (styled by site.css) -->
-  <header class="site-header">
-    <h1>Chris Medcraft — Spectroscopist</h1>
-    <p>Public Portfolio</p>
-    <p>• Atmospheric Science • Spectroscopy • Radiative Transfer Calculations</p>
-    <p>• Interactive Maps • Scientific Visualisations</p>
-  </header>
+<body>
+  <div id="site-header"></div>
 
-  <!-- Global layout: sidebar injected + content -->
   <div class="layout">
-    <div id="sidebar-container"></div>
+    <div id="site-nav"></div>
 
     <main class="container">
       <h2>Curriculum Vitae</h2>
@@ -197,7 +190,6 @@
           </ul>
         </div>
       </div>
-
       <div class="section">
         <h3>Teaching Experience</h3>
         <ul>
