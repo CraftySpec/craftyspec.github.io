@@ -4,29 +4,53 @@ async function loadSidebar() {
 
   const res = await fetch("sidebar.html", { cache: "no-store" });
   if (!res.ok) {
-    container.innerHTML = "<!-- sidebar failed to load -->";
+    console.error("Could not load sidebar.html", res.status);
     return;
   }
-
   container.innerHTML = await res.text();
 
-  // Set active link automatically
+  // Highlight active link
   const path = window.location.pathname.split("/").pop() || "index.html";
-  document.querySelectorAll("#siteNav a").forEach(a => {
-    const href = a.getAttribute("href");
+  const links = container.querySelectorAll(".nav a");
+  links.forEach(a => {
+    const href = (a.getAttribute("href") || "").trim();
     if (href === path) a.classList.add("active");
   });
-
-  // Mobile menu toggle
-  const sidebar = document.getElementById("sidebar");
-  const btn = document.getElementById("menuToggle");
-  if (sidebar && btn) {
-    btn.addEventListener("click", () => {
-      const open = sidebar.classList.toggle("open");
-      btn.setAttribute("aria-expanded", open ? "true" : "false");
-      btn.textContent = open ? "Menu (close)" : "Menu";
-    });
-  }
 }
 
-document.addEventListener("DOMContentLoaded", loadSidebar);
+function setupMobileNavUI() {
+  // Create overlay
+  const overlay = document.createElement("div");
+  overlay.className = "nav-overlay";
+  overlay.addEventListener("click", () => document.body.classList.remove("nav-open"));
+  document.body.appendChild(overlay);
+
+  // Create hamburger toggle
+  const btn = document.createElement("button");
+  btn.className = "nav-toggle";
+  btn.type = "button";
+  btn.setAttribute("aria-label", "Open navigation menu");
+  btn.innerHTML = "☰ <span style='font-weight:600'>Menu</span>";
+
+  btn.addEventListener("click", () => {
+    document.body.classList.toggle("nav-open");
+  });
+
+  document.body.appendChild(btn);
+
+  // Close on ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") document.body.classList.remove("nav-open");
+  });
+
+  // Close drawer when a nav link is clicked (mobile quality-of-life)
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest(".sidebar .nav a");
+    if (a) document.body.classList.remove("nav-open");
+  });
+}
+
+(async function initNav() {
+  await loadSidebar();
+  setupMobileNavUI();
+})();
