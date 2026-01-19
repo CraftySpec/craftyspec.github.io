@@ -1,103 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="nav.css">
-  <script src="nav.js" defer></script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chris Medcraft — About</title>
 
+  <link rel="stylesheet" href="site.css">
+  <script src="site.js" defer></script>
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-image: url("IMG_20250227_155733473_HDR.jpg");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      position: relative;
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.45);
-      z-index: -1;
-    }
-
-    header {
-      background: rgba(0, 0, 0, 0.85);
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-
-    .layout {
-      max-width: 1200px;
-      margin: 40px auto;
-      padding: 0 16px;
-      display: grid;
-      grid-template-columns: 240px 1fr;
-      gap: 18px;
-      align-items: start;
-    }
-
-    .sidebar {
-      background: rgba(0,0,0,0.78);
-      color: white;
-      border-radius: 8px;
-      padding: 18px 14px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.25);
-      position: sticky;
-      top: 18px;
-    }
-
-    .sidebar h2 {
-      margin: 0 0 12px 0;
-      font-size: 1.05rem;
-      font-weight: 700;
-    }
-
-    .nav a {
-      display: block;
-      padding: 10px 10px;
-      margin: 6px 0;
-      border-radius: 6px;
-      text-decoration: none;
-      color: white;
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.12);
-    }
-
-    .nav a:hover { background: rgba(255,255,255,0.16); }
-    .nav a.active {
-      background: rgba(78, 161, 255, 0.20);
-      border-color: rgba(78, 161, 255, 0.45);
-    }
-
-    .container {
-      background: rgba(255, 255, 255, 0.96);
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.25);
-    }
-
-    a { color: #0066cc; }
-    .section { margin-bottom: 30px; }
-
-    /* ------------------------------
-       Profile picture
-    ------------------------------ */
-    
+    /* Page-specific only */
     .profile {
       float: right;
       margin: 0 0 15px 20px;
     }
-    
     .profile img {
       width: 200px;
       height: auto;
@@ -105,48 +21,36 @@
       border: 3px solid rgba(255,255,255,0.9);
       box-shadow: 0 4px 15px rgba(0,0,0,0.35);
     }
-
   </style>
 </head>
 
 <body>
-  <header>
-    <h1>Chris Medcraft — Spectroscopist</h1>
-    <p>Public Portfolio</p>
-    <p>• Atmospheric Science • Spectroscopy • Radiative Transfer Calculations</p>
-    <p>• Interactive Maps • Scientific Visualisations</p>
-  </header>
+  <div id="header-container"></div>
 
-<nav class="sidebar">
-  <div id="sidebar-container"></div>
-</nav>
-
+  <div class="layout">
+    <div id="sidebar-container"></div>
 
     <main class="container">
-      <div class="section">
-
-        <!-- Profile picture -->
-        <div class="profile">
-          <img src="profilepic.jpg" alt="Chris Medcraft" />
-        </div>
-
-        <h2>About</h2>
-        <p>
-          I am a physical chemist with extensive experience designing, building, optimising,
-          and calibrating spectroscopic and atmospheric measurement instruments. My work spans
-          laboratory, field, and airborne environments, with a strong focus on quantitative optical
-          measurements, aerosol and cloud microphysics, and hyperspectral remote sensing.
-        </p>
-        <p>
-          I specialise in translating complex physical processes into robust, reproducible data
-          products through careful instrument characterisation, calibration, and data analysis in
-          Python and R. This portfolio highlights selected interactive visualisations, retrieval tools,
-          and analysis workflows developed in support of atmospheric and environmental research.
-        </p>
-        <p>This is a work in progress...</p>
+      <div class="profile">
+        <img src="profilepic.jpg" alt="Chris Medcraft" />
       </div>
-      <div style="clear: both;"></div>
 
+      <h2>About</h2>
+      <p>
+        I am a physical chemist with extensive experience designing, building, optimising,
+        and calibrating spectroscopic and atmospheric measurement instruments. My work spans
+        laboratory, field, and airborne environments, with a strong focus on quantitative optical
+        measurements, aerosol and cloud microphysics, and hyperspectral remote sensing.
+      </p>
+      <p>
+        I specialise in translating complex physical processes into robust, reproducible data
+        products through careful instrument characterisation, calibration, and data analysis in
+        Python and R. This portfolio highlights selected interactive visualisations, retrieval tools,
+        and analysis workflows developed in support of atmospheric and environmental research.
+      </p>
+      <p>This is a work in progress...</p>
+
+      <div style="clear: both;"></div>
     </main>
   </div>
 </body>
