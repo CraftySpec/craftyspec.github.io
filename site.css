@@ -185,3 +185,41 @@ a{ color: #0066cc; }
   }
 }
 
+.site-header {
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 24px 20px;
+    text-align: center;
+}
+
+.site-header h1 {
+    margin: 0 0 6px 0;
+}
+
+.site-header p {
+    margin: 6px 0;
+}
+
+.site-header .disciplines {
+    font-size: 0.95em;
+    opacity: 0.9;
+}
+
+.external-links {
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.external-links a {
+    color: #9fd0ff;
+    text-decoration: none;
+    margin: 0 6px;
+}
+
+.external-links a:hover {
+    text-decoration: underline;
+}
+
+.external-links span {
+    opacity: 0.6;
+}
