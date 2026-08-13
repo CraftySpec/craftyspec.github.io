@@ -1,4 +1,4 @@
-// Simple Harmonic Oscillator demo - vertical spring version
+// Simple Harmonic Oscillator demo - vertical spring + energy curves (5-cycle window)
 
 function $(id){return document.getElementById(id)}
 
@@ -10,7 +10,7 @@ let gamma = parseFloat($('gamma').value)
 let dt_ms = parseFloat($('dt').value)
 
 let t = 0
-let x = amp        // x is displacement in meters; positive = downward
+let x = amp        // displacement (m), positive downward
 let v = 0
 let running = false
 let raf = null
@@ -18,12 +18,17 @@ let raf = null
 // Canvas setup
 const animC = $('animCanvas')
 const actx = animC.getContext('2d')
+const energyC = $('energyCanvas')
+const ectx = energyC.getContext('2d')
 const specC = $('specCanvas')
 const sctx = specC.getContext('2d')
 
-// Data buffer for FFT
-let buffer = []
+// Data buffers
+let buffer = []            // raw x samples for FFT
 const MAX_SAMPLES = 32768
+
+let energyBuffer = []      // {t, KE, PE}
+const MAX_ENERGY_SAMPLES = 2000
 
 // Hook up controls (range + number sync)
 function bindRange(rangeId, numId, onChange){
@@ -39,28 +44,32 @@ bindRange('dt','dtNum', v=> dt_ms = parseFloat(v))
 
 $('start').addEventListener('click', ()=> { if(!running){ running=true; loop() }})
 $('pause').addEventListener('click', ()=> { running=false; if(raf) cancelAnimationFrame(raf) })
-$('reset').addEventListener('click', ()=> { running=false; if(raf) cancelAnimationFrame(raf); t=0; x=amp; v=0; buffer=[]; drawAnim(); clearSpec() })
+$('reset').addEventListener('click', ()=> { running=false; if(raf) cancelAnimationFrame(raf); t=0; x=amp; v=0; buffer=[]; energyBuffer=[]; drawAnim(); clearSpec(); clearEnergy() })
 $('computeSpectrum').addEventListener('click', ()=> computeAndDrawSpectrum())
 
-// Physics integrator: velocity Verlet style for stability
+// Physics integrator: velocity Verlet-like update (simple stable integrator)
 function step(dt){
   const a = (-k*x - gamma*v)/mass
   v += a*dt
   x += v*dt
   t += dt
+  // store sample for FFT
   buffer.push(x)
   if(buffer.length > MAX_SAMPLES) buffer.shift()
+  // store energy sample
+  const KE = 0.5 * mass * v * v
+  const PE = 0.5 * k * x * x   // potential relative to equilibrium (no gravity offset)
+  energyBuffer.push({t: t, KE: KE, PE: PE})
+  if(energyBuffer.length > MAX_ENERGY_SAMPLES) energyBuffer.shift()
 }
 
-// Drawing helpers for vertical spring
+// Drawing helpers for vertical spring (unchanged)
 function drawSpring(ctx, x0, y0, x1, y1, coils=12, amp=10){
-  // Draw a zigzag spring from (x0,y0) to (x1,y1)
   const dx = x1 - x0
   const dy = y1 - y0
   const length = Math.hypot(dx, dy)
   const ux = dx / length
   const uy = dy / length
-  // perpendicular vector
   const px = -uy
   const py = ux
   ctx.beginPath()
@@ -78,46 +87,6 @@ function drawSpring(ctx, x0, y0, x1, y1, coils=12, amp=10){
   ctx.stroke()
 }
 
-// Animation and drawing
-function drawAnim(){
-  const W = animC.width, H = animC.height
-  actx.clearRect(0,0,W,H)
-
-  // ceiling position
-  const cx = W/2
-  const ceilingY = 20
-
-  // map physical displacement x (meters) to pixels
-  // choose a scale so that amplitude ~ half canvas height by default
-  const scale = Math.max(40, (H-120)/2) // pixels per meter
-  const equilibriumY = H/2  // equilibrium position in pixels
-  const massY = equilibriumY + x * scale
-
-  // draw ceiling
-  actx.fillStyle = '#9aa6b2'
-  actx.fillRect(cx-60, ceilingY-6, 120, 6)
-
-  // draw spring
-  actx.strokeStyle = '#4fd1c5'
-  actx.lineWidth = 3
-  drawSpring(actx, cx, ceilingY, cx, massY-30, 18, 8)
-
-  // draw mass as rounded rectangle
-  const mw = 80, mh = 50
-  const mx = cx - mw/2
-  const my = massY - mh/2
-  actx.fillStyle = '#4fd1c5'
-  roundRect(actx, mx, my, mw, mh, 8, true, false)
-  // add a small shadow
-  actx.fillStyle = 'rgba(0,0,0,0.12)'
-  actx.fillRect(mx+6, my+mh-6, mw-12, 6)
-
-  // labels
-  $('timeLabel').textContent = t.toFixed(2)
-  $('posLabel').textContent = x.toFixed(3)
-}
-
-// rounded rectangle helper
 function roundRect(ctx, x, y, w, h, r, fill, stroke){
   if (typeof r === 'undefined') r = 5
   ctx.beginPath()
@@ -131,7 +100,172 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke){
   if(stroke) ctx.stroke()
 }
 
-// Spectrum drawing helpers (unchanged from previous)
+// Animation drawing: vertical spring and mass
+function drawAnim(){
+  const W = animC.width, H = animC.height
+  actx.clearRect(0,0,W,H)
+
+  const cx = W/2
+  const ceilingY = 20
+  const scale = Math.max(40, (H-120)/2) // pixels per meter
+  const equilibriumY = H/2
+  const massY = equilibriumY + x * scale
+
+  // ceiling
+  actx.fillStyle = '#9aa6b2'
+  actx.fillRect(cx-60, ceilingY-6, 120, 6)
+
+  // spring
+  actx.strokeStyle = '#4fd1c5'
+  actx.lineWidth = 3
+  drawSpring(actx, cx, ceilingY, cx, massY-30, 18, 8)
+
+  // mass
+  const mw = 80, mh = 50
+  const mx = cx - mw/2
+  const my = massY - mh/2
+  actx.fillStyle = '#4fd1c5'
+  roundRect(actx, mx, my, mw, mh, 8, true, false)
+  actx.fillStyle = 'rgba(0,0,0,0.12)'
+  actx.fillRect(mx+6, my+mh-6, mw-12, 6)
+
+  // labels
+  $('timeLabel').textContent = t.toFixed(2)
+  $('posLabel').textContent = x.toFixed(3)
+}
+
+// Energy panel: draw KE and PE vs time for last 5 cycles
+function clearEnergy(){
+  ectx.clearRect(0,0,energyC.width,energyC.height)
+  ectx.fillStyle = '#071021'
+  ectx.fillRect(0,0,energyC.width,energyC.height)
+  ectx.fillStyle = '#9aa6b2'
+  ectx.fillText('Energy curves will appear here while running (5 cycles window)', 10, 20)
+}
+
+function drawEnergyPanel(){
+  const W = energyC.width, H = energyC.height
+  ectx.clearRect(0,0,W,H)
+  ectx.fillStyle = '#071021'
+  ectx.fillRect(0,0,W,H)
+
+  // compute angular frequency and period
+  const omega = Math.sqrt(k / Math.max(1e-12, mass))
+  const T = 2 * Math.PI / omega
+  const windowLen = 5 * T
+
+  // determine window start
+  const tEnd = t
+  const tStart = Math.max(0, tEnd - windowLen)
+
+  // axes margins
+  const left = 50, right = 20, top = 12, bottom = 30
+  const plotW = W - left - right
+  const plotH = H - top - bottom
+
+  // draw axes
+  ectx.strokeStyle = '#234'
+  ectx.lineWidth = 1
+  ectx.beginPath()
+  ectx.moveTo(left, top)
+  ectx.lineTo(left, top + plotH)
+  ectx.lineTo(left + plotW, top + plotH)
+  ectx.stroke()
+
+  // collect samples in window
+  const samples = energyBuffer.filter(s => s.t >= tStart && s.t <= tEnd)
+  if(samples.length < 2){
+    ectx.fillStyle = '#9aa6b2'
+    ectx.fillText('Collecting samples...', left + 10, top + 20)
+    // draw time axis even if empty
+    drawTimeAxis(ectx, left, top, plotW, plotH, tStart, tEnd, T)
+    return
+  }
+
+  // find max energy for scaling
+  let maxE = 0
+  for(const s of samples){
+    maxE = Math.max(maxE, s.KE, s.PE)
+  }
+  if(maxE <= 0) maxE = 1e-6
+
+  // draw PE (blue-ish) and KE (orange)
+  // PE
+  ectx.beginPath()
+  for(let i=0;i<samples.length;i++){
+    const s = samples[i]
+    const xp = left + ((s.t - tStart) / (tEnd - tStart)) * plotW
+    const yp = top + plotH - (s.PE / maxE) * plotH
+    if(i===0) ectx.moveTo(xp, yp)
+    else ectx.lineTo(xp, yp)
+  }
+  ectx.strokeStyle = '#6fb3ff'
+  ectx.lineWidth = 2
+  ectx.stroke()
+  // KE
+  ectx.beginPath()
+  for(let i=0;i<samples.length;i++){
+    const s = samples[i]
+    const xp = left + ((s.t - tStart) / (tEnd - tStart)) * plotW
+    const yp = top + plotH - (s.KE / maxE) * plotH
+    if(i===0) ectx.moveTo(xp, yp)
+    else ectx.lineTo(xp, yp)
+  }
+  ectx.strokeStyle = '#ffb86b'
+  ectx.lineWidth = 2
+  ectx.stroke()
+
+  // legend
+  ectx.fillStyle = '#6fb3ff'
+  ectx.fillRect(W - 160, top + 6, 12, 8)
+  ectx.fillStyle = '#9aa6b2'
+  ectx.fillText('Potential (PE)', W - 140, top + 14)
+  ectx.fillStyle = '#ffb86b'
+  ectx.fillRect(W - 160, top + 26, 12, 8)
+  ectx.fillStyle = '#9aa6b2'
+  ectx.fillText('Kinetic (KE)', W - 140, top + 34)
+
+  // draw time axis ticks and label current time at right
+  drawTimeAxis(ectx, left, top, plotW, plotH, tStart, tEnd, T)
+
+  // draw current time marker (vertical line at right edge)
+  const xNow = left + plotW
+  ectx.strokeStyle = 'rgba(255,255,255,0.12)'
+  ectx.beginPath()
+  ectx.moveTo(xNow, top)
+  ectx.lineTo(xNow, top + plotH)
+  ectx.stroke()
+
+  // print current time on x-axis (right)
+  ectx.fillStyle = '#9aa6b2'
+  ectx.fillText('t = ' + tEnd.toFixed(3) + ' s', W - 120, H - 8)
+}
+
+// helper: draw time axis ticks for the energy panel
+function drawTimeAxis(ctx, left, top, plotW, plotH, tStart, tEnd, T){
+  ctx.fillStyle = '#9aa6b2'
+  ctx.font = '12px sans-serif'
+  const tickCount = 6
+  for(let i=0;i<=tickCount;i++){
+    const frac = i / tickCount
+    const tx = left + frac * plotW
+    const tv = tStart + frac * (tEnd - tStart)
+    // tick
+    ctx.strokeStyle = '#234'
+    ctx.beginPath()
+    ctx.moveTo(tx, top + plotH)
+    ctx.lineTo(tx, top + plotH + 6)
+    ctx.stroke()
+    // label
+    ctx.fillStyle = '#9aa6b2'
+    ctx.fillText(tv.toFixed(3), tx - 18, top + plotH + 20)
+  }
+  // x-axis label
+  ctx.fillStyle = '#9aa6b2'
+  ctx.fillText('Time (s) — last ' + ( (tEnd - tStart).toFixed(3) ) + ' s (' + Math.round((tEnd - tStart)/T) + ' cycles shown)', left, top + plotH + 36)
+}
+
+// Spectrum code (unchanged)
 function clearSpec(){
   sctx.clearRect(0,0,specC.width,specC.height)
   sctx.fillStyle = '#071021'
@@ -227,9 +361,11 @@ function loop(){
   const dt = dt_ms/1000
   step(dt)
   drawAnim()
+  drawEnergyPanel()
   if(running) raf = requestAnimationFrame(loop)
 }
 
 // initial draw
 drawAnim()
 clearSpec()
+clearEnergy()
