@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>Simple Harmonic Oscillator</h1>
-    <p>Animate motion and view the frequency spectrum (FFT).</p>
+    <p>Animate motion and view energy curves and the frequency spectrum.</p>
   </header>
 
   <main>
@@ -54,11 +54,15 @@
 
     <section class="display">
       <div class="anim">
-        <canvas id="animCanvas" width="600" height="200"></canvas>
+        <canvas id="animCanvas" width="600" height="260"></canvas>
         <div class="info">
           <div><strong>Time:</strong> <span id="timeLabel">0.00</span> s</div>
           <div><strong>Position:</strong> <span id="posLabel">0.00</span> m</div>
         </div>
+      </div>
+
+      <div class="energies">
+        <canvas id="energyCanvas" width="800" height="180"></canvas>
       </div>
 
       <div class="spectrum">
