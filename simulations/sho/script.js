@@ -357,12 +357,35 @@ function computeAndDrawSpectrum(){
 }
 
 // Main loop
-function loop(){
-  const dt = dt_ms/1000
-  step(dt)
+// Replace previous loop() with this fixed-dt accumulator version
+let lastFrameTime = null
+const SIM_DT = 0.001 // internal simulation step in seconds (1 ms). You can tune this.
+
+function loop(now) {
+  if (!lastFrameTime) lastFrameTime = now
+  const elapsedMs = now - lastFrameTime
+  lastFrameTime = now
+
+  // Convert elapsed to seconds and accumulate
+  let remaining = elapsedMs / 1000
+
+  // Use user-controlled dt_ms as the "output sampling" rate for buffer/FFT,
+  // but keep physics stable with SIM_DT. We'll step physics multiple times if needed.
+  const userDt = dt_ms / 1000
+
+  // Step physics in fixed increments of SIM_DT
+  while (remaining > 0) {
+    const stepDt = Math.min(SIM_DT, remaining)
+    step(stepDt)           // advance physics by stepDt
+    remaining -= stepDt
+  }
+
+  // Draw animation and energy (use current state)
   drawAnim()
   drawEnergyPanel()
-  if(running) raf = requestAnimationFrame(loop)
+
+  if (running) raf = requestAnimationFrame(loop)
+  else lastFrameTime = null
 }
 
 // initial draw
