@@ -1,7 +1,5 @@
-// Simple Harmonic Oscillator demo
-// Place in same folder as index.html
+// Simple Harmonic Oscillator demo - vertical spring version
 
-// Utilities
 function $(id){return document.getElementById(id)}
 
 // Parameters and state
@@ -12,7 +10,7 @@ let gamma = parseFloat($('gamma').value)
 let dt_ms = parseFloat($('dt').value)
 
 let t = 0
-let x = amp
+let x = amp        // x is displacement in meters; positive = downward
 let v = 0
 let running = false
 let raf = null
@@ -44,48 +42,96 @@ $('pause').addEventListener('click', ()=> { running=false; if(raf) cancelAnimati
 $('reset').addEventListener('click', ()=> { running=false; if(raf) cancelAnimationFrame(raf); t=0; x=amp; v=0; buffer=[]; drawAnim(); clearSpec() })
 $('computeSpectrum').addEventListener('click', ()=> computeAndDrawSpectrum())
 
-// Physics integrator: velocity Verlet for stability
+// Physics integrator: velocity Verlet style for stability
 function step(dt){
   const a = (-k*x - gamma*v)/mass
   v += a*dt
   x += v*dt
   t += dt
-  // store sample
   buffer.push(x)
   if(buffer.length > MAX_SAMPLES) buffer.shift()
+}
+
+// Drawing helpers for vertical spring
+function drawSpring(ctx, x0, y0, x1, y1, coils=12, amp=10){
+  // Draw a zigzag spring from (x0,y0) to (x1,y1)
+  const dx = x1 - x0
+  const dy = y1 - y0
+  const length = Math.hypot(dx, dy)
+  const ux = dx / length
+  const uy = dy / length
+  // perpendicular vector
+  const px = -uy
+  const py = ux
+  ctx.beginPath()
+  ctx.moveTo(x0, y0)
+  const step = length / coils
+  for(let i=1;i<=coils;i++){
+    const t = i / coils
+    const baseX = x0 + ux * (t * length)
+    const baseY = y0 + uy * (t * length)
+    const sign = (i % 2 === 0) ? 1 : -1
+    const sx = baseX + px * (amp * sign)
+    const sy = baseY + py * (amp * sign)
+    ctx.lineTo(sx, sy)
+  }
+  ctx.stroke()
 }
 
 // Animation and drawing
 function drawAnim(){
   const W = animC.width, H = animC.height
   actx.clearRect(0,0,W,H)
-  // draw baseline
-  actx.strokeStyle = '#234'
-  actx.lineWidth = 2
-  actx.beginPath()
-  actx.moveTo(10,H/2)
-  actx.lineTo(W-10,H/2)
-  actx.stroke()
 
-  // draw spring as line from left to mass
-  const cx = 80 + (W-160) * (0.5 + x/2) // map x to canvas
-  // spring
+  // ceiling position
+  const cx = W/2
+  const ceilingY = 20
+
+  // map physical displacement x (meters) to pixels
+  // choose a scale so that amplitude ~ half canvas height by default
+  const scale = Math.max(40, (H-120)/2) // pixels per meter
+  const equilibriumY = H/2  // equilibrium position in pixels
+  const massY = equilibriumY + x * scale
+
+  // draw ceiling
+  actx.fillStyle = '#9aa6b2'
+  actx.fillRect(cx-60, ceilingY-6, 120, 6)
+
+  // draw spring
   actx.strokeStyle = '#4fd1c5'
   actx.lineWidth = 3
-  actx.beginPath()
-  actx.moveTo(20,H/2)
-  actx.lineTo(cx-20,H/2)
-  actx.stroke()
-  // mass block
+  drawSpring(actx, cx, ceilingY, cx, massY-30, 18, 8)
+
+  // draw mass as rounded rectangle
+  const mw = 80, mh = 50
+  const mx = cx - mw/2
+  const my = massY - mh/2
   actx.fillStyle = '#4fd1c5'
-  actx.fillRect(cx-20,H/2-20,40,40)
+  roundRect(actx, mx, my, mw, mh, 8, true, false)
+  // add a small shadow
+  actx.fillStyle = 'rgba(0,0,0,0.12)'
+  actx.fillRect(mx+6, my+mh-6, mw-12, 6)
 
   // labels
   $('timeLabel').textContent = t.toFixed(2)
   $('posLabel').textContent = x.toFixed(3)
 }
 
-// Spectrum drawing helpers
+// rounded rectangle helper
+function roundRect(ctx, x, y, w, h, r, fill, stroke){
+  if (typeof r === 'undefined') r = 5
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.arcTo(x + w, y, x + w, y + h, r)
+  ctx.arcTo(x + w, y + h, x, y + h, r)
+  ctx.arcTo(x, y + h, x, y, r)
+  ctx.arcTo(x, y, x + w, y, r)
+  ctx.closePath()
+  if(fill) ctx.fill()
+  if(stroke) ctx.stroke()
+}
+
+// Spectrum drawing helpers (unchanged from previous)
 function clearSpec(){
   sctx.clearRect(0,0,specC.width,specC.height)
   sctx.fillStyle = '#071021'
@@ -94,13 +140,11 @@ function clearSpec(){
   sctx.fillText('Spectrum will appear here after computing', 10, 20)
 }
 
-// Simple FFT using Cooley-Tukey (radix-2). For clarity and small sizes only.
 function fft(re, im){
   const n = re.length
   if(n <= 1) return
   const levels = Math.log2(n)
   if(Math.floor(levels) !== levels) throw 'FFT size must be power of 2'
-  // bit-reverse
   for(let i=0;i<n;i++){
     let j = 0, bit = i
     for(let k=0;k<levels;k++){
@@ -132,21 +176,17 @@ function fft(re, im){
   }
 }
 
-// Compute spectrum and draw
 function computeAndDrawSpectrum(){
   if(buffer.length < 64){ alert('Collect more samples by running the simulation for a bit'); return }
-  // choose power-of-two length
   let N = 1
   while(N*2 <= buffer.length) N*=2
   const re = new Array(N).fill(0)
   const im = new Array(N).fill(0)
-  // windowing (Hann)
   for(let i=0;i<N;i++){
     const w = 0.5*(1 - Math.cos(2*Math.PI*i/(N-1)))
     re[i] = buffer[buffer.length - N + i] * w
   }
   fft(re,im)
-  // compute magnitudes and frequencies
   const dt = dt_ms/1000
   const fs = 1/dt
   const half = N/2
@@ -156,11 +196,9 @@ function computeAndDrawSpectrum(){
     mags[i] = Math.sqrt(re[i]*re[i] + im[i]*im[i]) / N
     freqs[i] = i * fs / N
   }
-  // draw
   sctx.clearRect(0,0,specC.width,specC.height)
   sctx.fillStyle = '#071021'
   sctx.fillRect(0,0,specC.width,specC.height)
-  // axes
   sctx.strokeStyle = '#234'
   sctx.lineWidth = 1
   sctx.beginPath()
@@ -168,18 +206,17 @@ function computeAndDrawSpectrum(){
   sctx.lineTo(40,specC.height-30)
   sctx.lineTo(specC.width-10,specC.height-30)
   sctx.stroke()
-  // plot magnitude (log scale)
   const maxMag = Math.max(...mags)
+  sctx.beginPath()
   for(let i=1;i<half;i++){
     const xpix = 40 + (specC.width-60) * (i/(half-1))
     const ypix = specC.height-30 - (specC.height-50) * (Math.log10(mags[i]+1e-12) - Math.log10(1e-12)) / (Math.log10(maxMag+1e-12)-Math.log10(1e-12))
-    if(i===1) sctx.beginPath()
-    sctx.strokeStyle = '#ff7b72'
-    sctx.lineWidth = 1
-    sctx.lineTo(xpix, ypix)
+    if(i===1) sctx.moveTo(xpix, ypix)
+    else sctx.lineTo(xpix, ypix)
   }
+  sctx.strokeStyle = '#ff7b72'
+  sctx.lineWidth = 1
   sctx.stroke()
-  // label peak frequency
   let peakIdx = mags.indexOf(Math.max(...mags))
   sctx.fillStyle = '#9aa6b2'
   sctx.fillText('Peak freq: ' + freqs[peakIdx].toFixed(3) + ' Hz', 50, 20)
