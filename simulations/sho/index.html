@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple Harmonic Oscillator — CraftySpec</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Simple Harmonic Oscillator</h1>
+    <p>Animate motion and view the frequency spectrum (FFT).</p>
+  </header>
+
+  <main>
+    <section class="controls">
+      <div class="control-row">
+        <label>Mass (kg)</label>
+        <input id="mass" type="range" min="0.1" max="10" step="0.1" value="1">
+        <input id="massNum" type="number" min="0.1" max="10" step="0.1" value="1">
+      </div>
+
+      <div class="control-row">
+        <label>Spring constant k (N/m)</label>
+        <input id="k" type="range" min="0.1" max="200" step="0.1" value="10">
+        <input id="kNum" type="number" min="0.1" max="200" step="0.1" value="10">
+      </div>
+
+      <div class="control-row">
+        <label>Amplitude (m)</label>
+        <input id="amp" type="range" min="0" max="2" step="0.01" value="0.5">
+        <input id="ampNum" type="number" min="0" max="2" step="0.01" value="0.5">
+      </div>
+
+      <div class="control-row">
+        <label>Damping (gamma, s⁻¹)</label>
+        <input id="gamma" type="range" min="0" max="5" step="0.01" value="0.0">
+        <input id="gammaNum" type="number" min="0" max="5" step="0.01" value="0.0">
+      </div>
+
+      <div class="control-row">
+        <label>Time step (ms)</label>
+        <input id="dt" type="range" min="1" max="50" step="1" value="10">
+        <input id="dtNum" type="number" min="1" max="50" step="1" value="10">
+      </div>
+
+      <div class="control-row buttons">
+        <button id="start">Start</button>
+        <button id="pause">Pause</button>
+        <button id="reset">Reset</button>
+        <button id="computeSpectrum">Compute Spectrum</button>
+      </div>
+    </section>
+
+    <section class="display">
+      <div class="anim">
+        <canvas id="animCanvas" width="600" height="200"></canvas>
+        <div class="info">
+          <div><strong>Time:</strong> <span id="timeLabel">0.00</span> s</div>
+          <div><strong>Position:</strong> <span id="posLabel">0.00</span> m</div>
+        </div>
+      </div>
+
+      <div class="spectrum">
+        <canvas id="specCanvas" width="800" height="300"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Hosted on GitHub Pages — CraftySpec</small>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
