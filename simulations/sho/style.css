@@ -18,7 +18,7 @@ main{display:flex;gap:18px;padding:18px;flex-wrap:wrap}
 .buttons{justify-content:space-between}
 .buttons button{background:var(--accent);border:none;padding:8px 10px;border-radius:6px;color:#042022;cursor:pointer}
 .display{flex:1;min-width:420px;display:flex;flex-direction:column;gap:12px}
-.anim, .spectrum{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px}
+.anim, .spectrum, .energies{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px}
 canvas{display:block;background:#071021;border-radius:6px}
 .info{display:flex;gap:18px;color:var(--muted);margin-top:8px}
 footer{padding:12px;color:var(--muted);text-align:center}
