@@ -143,34 +143,58 @@ function clearEnergy(){
   ectx.fillText('Energy curves will appear here while running (5 cycles window)', 10, 20)
 }
 
-function drawEnergyPanel(){
-  const W = energyC.width, H = energyC.height
-  ectx.clearRect(0,0,W,H)
-  ectx.fillStyle = '#071021'
-  ectx.fillRect(0,0,W,H)
+// Helper: linear interpolation between two samples
+function lerp(a, b, f) { return a + (b - a) * f }
 
-  // compute angular frequency and period
-  const omega = Math.sqrt(k / Math.max(1e-12, mass))
-  const T = 2 * Math.PI / omega
-  const windowLen = 5 * T
+// Resample energyBuffer onto N uniformly spaced times between tStart and tEnd
+function resampleEnergyWindow(tStart, tEnd, N) {
+  if (energyBuffer.length === 0) {
+    return { times: [], KE: [], PE: [] }
+  }
+  // Build arrays of times, KE, PE for binary search / interpolation
+  const times = energyBuffer.map(s => s.t)
+  const KEarr = energyBuffer.map(s => s.KE)
+  const PEarr = energyBuffer.map(s => s.PE)
 
-  // determine window start
-  const tEnd = t
-  const tStart = Math.max(0, tEnd - windowLen)
+  const outTimes = new Array(N)
+  const outKE = new Array(N)
+  const outPE = new Array(N)
 
-  // axes margins
-  const left = 50, right = 20, top = 12, bottom = 30
-  const plotW = W - left - right
-  const plotH = H - top - bottom
+  for (let i = 0; i < N; i++) {
+    const frac = i / (N - 1)
+    const tt = tStart + frac * (tEnd - tStart)
+    outTimes[i] = tt
 
-  // draw axes
-  ectx.strokeStyle = '#234'
-  ectx.lineWidth = 1
-  ectx.beginPath()
-  ectx.moveTo(left, top)
-  ectx.lineTo(left, top + plotH)
-  ectx.lineTo(left + plotW, top + plotH)
-  ectx.stroke()
+    // find right index j such that times[j] >= tt
+    let j = 0
+    // simple binary search
+    let lo = 0, hi = times.length - 1
+    if (tt <= times[0]) {
+      j = 0
+      outKE[i] = KEarr[0]
+      outPE[i] = PEarr[0]
+      continue
+    } else if (tt >= times[hi]) {
+      outKE[i] = KEarr[hi]
+      outPE[i] = PEarr[hi]
+      continue
+    } else {
+      while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2)
+        if (times[mid] < tt) lo = mid + 1
+        else hi = mid - 1
+      }
+      j = lo
+    }
+    const t0 = times[j - 1], t1 = times[j]
+    const f = (tt - t0) / (t1 - t0)
+    outKE[i] = lerp(KEarr[j - 1], KEarr[j], f)
+    outPE[i] = lerp(PEarr[j - 1], PEarr[j], f)
+  }
+
+  return { times: outTimes, KE: outKE, PE: outPE }
+}
+
 
   // collect samples in window
   const samples = energyBuffer.filter(s => s.t >= tStart && s.t <= tEnd)
@@ -239,6 +263,57 @@ function drawEnergyPanel(){
   // print current time on x-axis (right)
   ectx.fillStyle = '#9aa6b2'
   ectx.fillText('t = ' + tEnd.toFixed(3) + ' s', W - 120, H - 8)
+}
+// Helper: linear interpolation between two samples
+function lerp(a, b, f) { return a + (b - a) * f }
+
+// Resample energyBuffer onto N uniformly spaced times between tStart and tEnd
+function resampleEnergyWindow(tStart, tEnd, N) {
+  if (energyBuffer.length === 0) {
+    return { times: [], KE: [], PE: [] }
+  }
+  // Build arrays of times, KE, PE for binary search / interpolation
+  const times = energyBuffer.map(s => s.t)
+  const KEarr = energyBuffer.map(s => s.KE)
+  const PEarr = energyBuffer.map(s => s.PE)
+
+  const outTimes = new Array(N)
+  const outKE = new Array(N)
+  const outPE = new Array(N)
+
+  for (let i = 0; i < N; i++) {
+    const frac = i / (N - 1)
+    const tt = tStart + frac * (tEnd - tStart)
+    outTimes[i] = tt
+
+    // find right index j such that times[j] >= tt
+    let j = 0
+    // simple binary search
+    let lo = 0, hi = times.length - 1
+    if (tt <= times[0]) {
+      j = 0
+      outKE[i] = KEarr[0]
+      outPE[i] = PEarr[0]
+      continue
+    } else if (tt >= times[hi]) {
+      outKE[i] = KEarr[hi]
+      outPE[i] = PEarr[hi]
+      continue
+    } else {
+      while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2)
+        if (times[mid] < tt) lo = mid + 1
+        else hi = mid - 1
+      }
+      j = lo
+    }
+    const t0 = times[j - 1], t1 = times[j]
+    const f = (tt - t0) / (t1 - t0)
+    outKE[i] = lerp(KEarr[j - 1], KEarr[j], f)
+    outPE[i] = lerp(PEarr[j - 1], PEarr[j], f)
+  }
+
+  return { times: outTimes, KE: outKE, PE: outPE }
 }
 
 // helper: draw time axis ticks for the energy panel
