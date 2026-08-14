@@ -7,127 +7,137 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="container">
-    <header>
-      <h1>Diatomic Rotational Spectrum</h1>
-      <p>Explore how molecular structure and temperature determine a rotational spectrum.</p>
-    </header>
+<main class="container">
+  <header>
+    <h1>Diatomic Rotational Spectrum</h1>
+    <p>Explore how molecular structure and temperature determine a rotational spectrum.</p>
+  </header>
 
-    <section class="grid">
-      <aside class="panel controls">
-        <h2>Molecule</h2>
+  <section class="grid">
+    <aside class="panel controls">
+      <h2>Molecule</h2>
 
-        <label>
-          Atomic mass 1
-          <div class="input-row">
-            <input id="mass1" type="number" min="0.001" step="0.001" value="12.011">
-            <span>u</span>
-          </div>
-        </label>
-
-        <label>
-          Atomic mass 2
-          <div class="input-row">
-            <input id="mass2" type="number" min="0.001" step="0.001" value="15.999">
-            <span>u</span>
-          </div>
-        </label>
-
-        <label>
-          Bond length
-          <div class="input-row">
-            <input id="bondLength" type="number" min="0.01" step="0.001" value="1.128">
-            <span>Å</span>
-          </div>
-        </label>
-
-        <label>
-          Harmonic vibrational frequency
-          <div class="input-row">
-            <input id="vibFreq" type="number" min="1" step="1" value="2170">
-            <span>cm⁻¹</span>
-          </div>
-        </label>
-
-        <label>
-          Temperature
-          <div class="input-row">
-            <input id="temperature" type="number" min="0.1" step="1" value="300">
-            <span>K</span>
-          </div>
-        </label>
-
-        <label>
-          Maximum J
-          <div class="input-row">
-            <input id="maxJ" type="number" min="2" max="200" step="1" value="40">
-            <span></span>
-          </div>
-        </label>
-
-        <div class="button-row">
-          <button id="reset" class="secondary">Reset</button>
+      <label>
+        Atomic mass 1
+        <div class="input-row">
+          <input id="mass1" type="number" min="0.001" step="0.001" value="12.011">
+          <span>u</span>
         </div>
+      </label>
 
-        <p class="note">
-          The model assumes a rigid-rotor spectrum with centrifugal distortion and a
-          harmonic vibrational frequency used to estimate <em>D</em>.
-        </p>
-      </aside>
-
-      <section class="panel">
-        <h2>Calculated molecular parameters</h2>
-
-        <div class="parameters">
-          <div><span>Reduced mass</span><strong id="muLabel">—</strong></div>
-          <div><span>Moment of inertia</span><strong id="iLabel">—</strong></div>
-          <div><span>Rotational constant, B</span><strong id="bLabel">—</strong></div>
-          <div><span>Centrifugal distortion, D</span><strong id="dLabel">—</strong></div>
-          <div><span>Most populated J</span><strong id="jPeakLabel">—</strong></div>
+      <label>
+        Atomic mass 2
+        <div class="input-row">
+          <input id="mass2" type="number" min="0.001" step="0.001" value="15.999">
+          <span>u</span>
         </div>
+      </label>
 
-        <div class="spectrum-wrap">
-          <canvas id="specCanvas" width="1000" height="500"></canvas>
+      <label>
+        Bond length
+        <div class="input-row">
+          <input id="bondLength" type="number" min="0.01" step="0.001" value="1.128">
+          <span>Å</span>
         </div>
+      </label>
 
-        <div class="spectrum-info">
-          <span>Hover over a line to inspect the transition.</span>
-          <strong id="hoverLabel">—</strong>
+      <label>
+        Harmonic vibrational frequency
+        <div class="input-row">
+          <input id="vibFreq" type="number" min="1" step="1" value="2170">
+          <span>cm⁻¹</span>
         </div>
-      </section>
-    </section>
+      </label>
 
-    <section class="panel lower-grid">
-      <div>
-        <h2>Rotational energy levels</h2>
-        <canvas id="levelsCanvas" width="700" height="500"></canvas>
+      <label>
+        Centrifugal distortion (user D)
+        <div class="input-row">
+          <input id="userD" type="number" min="0" step="0.000001" value="0.00002">
+          <span>cm⁻¹</span>
+        </div>
+      </label>
+
+      <label>
+        Temperature
+        <div class="input-row">
+          <input id="temperature" type="number" min="0.1" step="1" value="300">
+          <span>K</span>
+        </div>
+      </label>
+
+      <label>
+        Maximum J
+        <div class="input-row">
+          <input id="maxJ" type="number" min="2" max="200" step="1" value="40">
+          <span></span>
+        </div>
+      </label>
+
+      <div class="button-row">
+        <button id="reset" class="secondary">Reset</button>
       </div>
 
-      <div>
-        <h2>Transitions</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Transition</th>
-                <th>ν̃ / cm⁻¹</th>
-                <th>Relative intensity</th>
-              </tr>
-            </thead>
-            <tbody id="transitionTable"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <footer>
-      <p>
-        Pure rotational electric-dipole transitions are shown for a model diatomic molecule.
-        A permanent dipole moment is required for an ordinary microwave rotational spectrum.
+      <p class="note">
+        The model assumes a rigid-rotor spectrum with centrifugal distortion and a
+        harmonic vibrational frequency used to estimate <em>D</em>.
       </p>
-    </footer>
-  </main>
+    </aside>
 
-  <script src="script.js"></script>
+    <section class="panel">
+      <h2>Calculated molecular parameters</h2>
+
+      <div class="parameters">
+        <div><span>Reduced mass</span><strong id="muLabel">—</strong></div>
+        <div><span>Moment of inertia</span><strong id="iLabel">—</strong></div>
+        <div><span>Rotational constant, B</span><strong id="bLabel">—</strong></div>
+        <div><span>Calculated D (from ωₑ)</span><strong id="dCalcLabel">—</strong></div>
+        <div><span>User‑entered D</span><strong id="dUserLabel">—</strong></div>
+        <div><span>Most populated J</span><strong id="jPeakLabel">—</strong></div>
+        <div><span>Peak difference</span><strong id="peakDiffLabel">Δν = —</strong></div>
+      </div>
+
+      <div class="spectrum-wrap">
+        <canvas id="specCanvas" width="1000" height="500"></canvas>
+      </div>
+
+      <div class="spectrum-info">
+        <span>Hover over a line to inspect the transition.</span>
+        <strong id="hoverLabel">—</strong>
+      </div>
+    </section>
+  </section>
+
+  <section class="panel lower-grid">
+    <div>
+      <h2>Rotational energy levels</h2>
+      <canvas id="levelsCanvas" width="700" height="500"></canvas>
+    </div>
+
+    <div>
+      <h2>Transitions</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th>Transition</th>
+            <th>ν̃ / cm⁻¹</th>
+            <th>Relative intensity</th>
+          </tr>
+          </thead>
+          <tbody id="transitionTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Pure rotational electric-dipole transitions are shown for a model diatomic molecule.
+      A permanent dipole moment is required for an ordinary microwave rotational spectrum.
+    </p>
+  </footer>
+</main>
+
+<script src="script.js"></script>
 </body>
 </html>

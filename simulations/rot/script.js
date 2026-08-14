@@ -1,13 +1,12 @@
 // Diatomic rotational spectrum simulator
-// Based on the same simple DOM/canvas style as the harmonic oscillator demo.
 
 function $(id) { return document.getElementById(id) }
 
 // Physical constants
-const u = 1.66053906660e-27       // atomic mass unit, kg
-const h = 6.62607015e-34          // Planck constant, J s
-const c_cm = 2.99792458e10        // speed of light, cm s^-1
-const kB = 1.380649e-23           // Boltzmann constant, J K^-1
+const u = 1.66053906660e-27
+const h = 6.62607015e-34
+const c_cm = 2.99792458e10
+const kB = 1.380649e-23
 
 // Parameters and state
 let mass1 = parseFloat($('mass1').value)
@@ -16,6 +15,7 @@ let bondLength = parseFloat($('bondLength').value)
 let vibFreq = parseFloat($('vibFreq').value)
 let temperature = parseFloat($('temperature').value)
 let maxJ = parseInt($('maxJ').value)
+let userD = parseFloat($('userD').value)
 
 // Canvas setup
 const specC = $('specCanvas')
@@ -29,6 +29,13 @@ let lines = []
 let currentParams = null
 let hoverIndex = -1
 
+// View transform (zoom + pan)
+let viewMin = null
+let viewMax = null
+
+// Peak selection
+let selectedPeaks = []
+
 // ------------------------------------------------------------
 // Physics
 // ------------------------------------------------------------
@@ -38,26 +45,21 @@ function calculateMolecularParameters() {
   const m2 = mass2 * u
   const r = bondLength * 1e-10
 
-  // Reduced mass
   const mu = (m1 * m2) / (m1 + m2)
-
-  // Moment of inertia about the centre of mass
   const I = mu * r * r
 
-  // Rotational constant in cm^-1
   const B = h / (8 * Math.PI * Math.PI * c_cm * I)
 
-  // Approximate centrifugal distortion constant:
-  // D = 4 B^3 / omega_e
-  // B and omega_e are both expressed in cm^-1.
-  const D = 4 * Math.pow(B, 3) / vibFreq
+  const D_calc = 4 * Math.pow(B, 3) / vibFreq
+  const D_user = parseFloat($('userD').value)
 
   return {
     mu: mu,
     mu_u: mu / u,
     I: I,
     B: B,
-    D: D
+    D_calc: D_calc,
+    D_user: D_user
   }
 }
 
@@ -68,22 +70,16 @@ function calculateSpectrum() {
   for (let J = 0; J < maxJ; J++) {
     const x = J * (J + 1)
 
-    // Rotational energy of lower state, in cm^-1
-    const E_lower = p.B * x - p.D * x * x
+    const E_lower = p.B * x - p.D_user * x * x
 
-    // J -> J+1 transition, in cm^-1
     const transition =
       2 * p.B * (J + 1) -
-      4 * p.D * Math.pow(J + 1, 3)
+      4 * p.D_user * Math.pow(J + 1, 3)
 
-    // Lower-state Boltzmann population.
-    // E_lower is in cm^-1, so convert hc*E to joules.
     const population =
       (2 * J + 1) *
       Math.exp(-(h * c_cm * E_lower) / (kB * temperature))
 
-    // Hönl-London factor for a simple Sigma -> Sigma
-    // rotational transition: proportional to J+1.
     const intensity = (J + 1) * population
 
     result.push({
@@ -95,10 +91,7 @@ function calculateSpectrum() {
   }
 
   const maxIntensity = Math.max(...result.map(line => line.intensity))
-
-  for (const line of result) {
-    line.intensity /= maxIntensity
-  }
+  for (const line of result) line.intensity /= maxIntensity
 
   return result
 }
@@ -114,25 +107,15 @@ function formatSci(value, digits = 3) {
 function updateParameterLabels() {
   const p = currentParams
 
-  $('muLabel').textContent =
-    p.mu_u.toFixed(4) + ' u'
-
-  $('iLabel').textContent =
-    formatSci(p.I, 3) + ' kg m²'
-
-  $('bLabel').textContent =
-    p.B.toFixed(6) + ' cm⁻¹'
-
-  $('dLabel').textContent =
-    formatSci(p.D, 3) + ' cm⁻¹'
+  $('muLabel').textContent = p.mu_u.toFixed(4) + ' u'
+  $('iLabel').textContent = formatSci(p.I, 3) + ' kg m²'
+  $('bLabel').textContent = p.B.toFixed(6) + ' cm⁻¹'
+  $('dCalcLabel').textContent = p.D_calc.toExponential(3) + ' cm⁻¹'
+  $('dUserLabel').textContent = p.D_user.toExponential(3) + ' cm⁻¹'
 
   if (lines.length > 0) {
-    const peak = lines.reduce((a, b) =>
-      b.intensity > a.intensity ? b : a
-    )
-
-    $('jPeakLabel').textContent =
-      peak.J + ' → ' + (peak.J + 1)
+    const peak = lines.reduce((a, b) => b.intensity > a.intensity ? b : a)
+    $('jPeakLabel').textContent = peak.J + ' → ' + (peak.J + 1)
   }
 }
 
@@ -144,14 +127,6 @@ function clearCanvas(ctx, canvas) {
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   ctx.fillStyle = '#071021'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
-}
-
-function niceRange(min, max) {
-  const pad = (max - min) * 0.04
-  return {
-    min: Math.max(0, min - pad),
-    max: max + pad
-  }
 }
 
 function drawSpectrum() {
@@ -178,10 +153,7 @@ function drawSpectrum() {
     return
   }
 
-  const range = niceRange(
-    visible[0].wavenumber,
-    visible[visible.length - 1].wavenumber
-  )
+  const range = { min: viewMin, max: viewMax }
 
   // Grid
   sctx.strokeStyle = '#24344d'
@@ -231,7 +203,6 @@ function drawSpectrum() {
     sctx.lineTo(x, y)
     sctx.stroke()
 
-    // Transition label for selected line
     if (i === hoverIndex) {
       sctx.fillStyle = '#ffffff'
       sctx.font = '13px sans-serif'
@@ -242,6 +213,19 @@ function drawSpectrum() {
         Math.max(18, y - 8)
       )
     }
+  }
+
+  // Selected peaks
+  for (const peak of selectedPeaks) {
+    const f = (peak.wavenumber - range.min) / (range.max - range.min)
+    const x = left + f * plotW
+
+    sctx.strokeStyle = '#ffdd55'
+    sctx.lineWidth = 3
+    sctx.beginPath()
+    sctx.moveTo(x, top + plotH)
+    sctx.lineTo(x, top)
+    sctx.stroke()
   }
 
   // Axis labels
@@ -286,14 +270,11 @@ function drawEnergyLevels() {
 
   for (let J = 0; J <= Math.min(maxJ, 20); J++) {
     const x = J * (J + 1)
-    const E = currentParams.B * x - currentParams.D * x * x
-
+    const E = currentParams.B * x - currentParams.D_user * x * x
     levels.push({ J: J, E: E })
   }
 
   const maxE = Math.max(...levels.map(level => level.E))
-
-  sctx.textAlign = 'left'
 
   for (const level of levels) {
     const y = top + plotH - (level.E / maxE) * plotH
@@ -312,7 +293,6 @@ function drawEnergyLevels() {
     lctx.fillText(`J = ${level.J}`, left - 10, y + 4)
   }
 
-  // Energy axis
   lctx.fillStyle = '#9aa6b2'
   lctx.font = '12px sans-serif'
   lctx.textAlign = 'left'
@@ -341,6 +321,23 @@ function updateTable() {
 }
 
 // ------------------------------------------------------------
+// Peak difference
+// ------------------------------------------------------------
+
+function updatePeakDifference() {
+  if (selectedPeaks.length < 2) {
+    $('peakDiffLabel').textContent = 'Δν = —'
+    return
+  }
+
+  const [p1, p2] = selectedPeaks
+  const diff = Math.abs(p1.wavenumber - p2.wavenumber)
+
+  $('peakDiffLabel').textContent =
+    `Δν = ${diff.toFixed(5)} cm⁻¹`
+}
+
+// ------------------------------------------------------------
 // Main calculation
 // ------------------------------------------------------------
 
@@ -351,19 +348,14 @@ function updateSimulation() {
   vibFreq = parseFloat($('vibFreq').value)
   temperature = parseFloat($('temperature').value)
   maxJ = parseInt($('maxJ').value)
-
-  if (
-    !Number.isFinite(mass1) || mass1 <= 0 ||
-    !Number.isFinite(mass2) || mass2 <= 0 ||
-    !Number.isFinite(bondLength) || bondLength <= 0 ||
-    !Number.isFinite(vibFreq) || vibFreq <= 0 ||
-    !Number.isFinite(temperature) || temperature <= 0
-  ) {
-    return
-  }
+  userD = parseFloat($('userD').value)
 
   currentParams = calculateMolecularParameters()
   lines = calculateSpectrum()
+
+  const visible = lines.filter(l => l.wavenumber > 0)
+  viewMin = visible[0].wavenumber
+  viewMax = visible[visible.length - 1].wavenumber
 
   updateParameterLabels()
   drawSpectrum()
@@ -381,7 +373,8 @@ const inputIds = [
   'bondLength',
   'vibFreq',
   'temperature',
-  'maxJ'
+  'maxJ',
+  'userD'
 ]
 
 for (const id of inputIds) {
@@ -395,12 +388,13 @@ $('reset').addEventListener('click', () => {
   $('vibFreq').value = '2170'
   $('temperature').value = '300'
   $('maxJ').value = '40'
+  $('userD').value = '0.00002'
 
   updateSimulation()
 })
 
 // ------------------------------------------------------------
-// Spectrum hover
+// Hover
 // ------------------------------------------------------------
 
 specC.addEventListener('mousemove', event => {
@@ -417,18 +411,13 @@ specC.addEventListener('mousemove', event => {
 
   const visible = lines.filter(line => line.wavenumber > 0)
 
-  const range = niceRange(
-    visible[0].wavenumber,
-    visible[visible.length - 1].wavenumber
-  )
-
   let closest = -1
   let closestDistance = 12
 
   for (let i = 0; i < visible.length; i++) {
     const f =
-      (visible[i].wavenumber - range.min) /
-      (range.max - range.min)
+      (visible[i].wavenumber - viewMin) /
+      (viewMax - viewMin)
 
     const x = left + f * plotW
     const distance = Math.abs(mouseX - x)
@@ -461,5 +450,109 @@ specC.addEventListener('mouseleave', () => {
   drawSpectrum()
 })
 
+// ------------------------------------------------------------
+// Zoom (mouse wheel)
+// ------------------------------------------------------------
+
+specC.addEventListener('wheel', event => {
+  event.preventDefault()
+
+  const zoomFactor = 0.1
+  const mouseX = event.offsetX
+
+  const W = specC.width
+  const left = 65
+  const right = 25
+  const plotW = W - left - right
+
+  const frac = (mouseX - left) / plotW
+  const center = viewMin + frac * (viewMax - viewMin)
+
+  const span = viewMax - viewMin
+  const delta = span * zoomFactor * (event.deltaY > 0 ? 1 : -1)
+
+  viewMin = center - (span - delta) * frac
+  viewMax = center + (span - delta) * (1 - frac)
+
+  drawSpectrum()
+})
+
+// ------------------------------------------------------------
+// Pan (mouse drag)
+// ------------------------------------------------------------
+
+let isPanning = false
+let lastX = 0
+
+specC.addEventListener('mousedown', event => {
+  isPanning = true
+  lastX = event.clientX
+})
+
+specC.addEventListener('mousemove', event => {
+  if (!isPanning) return
+
+  const dx = event.clientX - lastX
+  lastX = event.clientX
+
+  const W = specC.width
+  const left = 65
+  const right = 25
+  const plotW = W - left - right
+
+  const span = viewMax - viewMin
+  const shift = dx / plotW * span
+
+  viewMin -= shift
+  viewMax -= shift
+
+  drawSpectrum()
+})
+
+specC.addEventListener('mouseup', () => isPanning = false)
+specC.addEventListener('mouseleave', () => isPanning = false)
+
+// ------------------------------------------------------------
+// Peak selection (click)
+// ------------------------------------------------------------
+
+specC.addEventListener('click', event => {
+  const rect = specC.getBoundingClientRect()
+  const mouseX = (event.clientX - rect.left) *
+    (specC.width / rect.width)
+
+  const W = specC.width
+  const left = 65
+  const right = 25
+  const plotW = W - left - right
+
+  const visible = lines.filter(l => l.wavenumber > 0)
+
+  let closest = null
+  let closestDist = 12
+
+  for (const line of visible) {
+    const f = (line.wavenumber - viewMin) / (viewMax - viewMin)
+    const x = left + f * plotW
+    const d = Math.abs(mouseX - x)
+    if (d < closestDist) {
+      closestDist = d
+      closest = line
+    }
+  }
+
+  if (!closest) return
+
+  selectedPeaks.push(closest)
+  if (selectedPeaks.length > 2) selectedPeaks.shift()
+
+  updatePeakDifference()
+  drawSpectrum()
+})
+
+// ------------------------------------------------------------
 // Initial calculation
+// ------------------------------------------------------------
+
 updateSimulation()
+
