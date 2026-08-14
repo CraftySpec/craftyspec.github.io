@@ -451,6 +451,75 @@ specC.addEventListener('mouseleave', () => {
 })
 
 // ------------------------------------------------------------
+// Draw molecule
+// ------------------------------------------------------------
+function drawMoleculeDiagram() {
+  clearCanvas(lctx, levelsC);
+
+  const W = levelsC.width;
+  const H = levelsC.height;
+
+  // Extract parameters
+  const m1 = mass1;
+  const m2 = mass2;
+  const r_angstrom = bondLength;
+
+  // Convert bond length to pixels
+  const bondPx = 250;  // fixed visual scale
+
+  // Atom radii scaled by mass
+  const minR = 20;
+  const maxR = 60;
+
+  function scaleRadius(m) {
+    const mMin = 1;
+    const mMax = 200;
+    return minR + (maxR - minR) * ((m - mMin) / (mMax - mMin));
+  }
+
+  const r1 = scaleRadius(m1);
+  const r2 = scaleRadius(m2);
+
+  // Positions
+  const cx = W / 2;
+  const cy = H / 2;
+
+  const x1 = cx - bondPx / 2;
+  const x2 = cx + bondPx / 2;
+
+  // Draw bond
+  lctx.strokeStyle = "#cccccc";
+  lctx.lineWidth = 6;
+  lctx.beginPath();
+  lctx.moveTo(x1, cy);
+  lctx.lineTo(x2, cy);
+  lctx.stroke();
+
+  // Draw atoms
+  function drawAtom(x, y, radius, label) {
+    lctx.fillStyle = "#4fd1c5";
+    lctx.beginPath();
+    lctx.arc(x, y, radius, 0, Math.PI * 2);
+    lctx.fill();
+
+    lctx.fillStyle = "#ffffff";
+    lctx.font = "16px sans-serif";
+    lctx.textAlign = "center";
+    lctx.fillText(label, x, y + 5);
+  }
+
+  drawAtom(x1, cy, r1, `m₁ = ${m1.toFixed(3)} u`);
+  drawAtom(x2, cy, r2, `m₂ = ${m2.toFixed(3)} u`);
+
+  // Bond length label
+  lctx.fillStyle = "#ffffff";
+  lctx.font = "16px sans-serif";
+  lctx.textAlign = "center";
+  lctx.fillText(`Bond length = ${r_angstrom.toFixed(3)} Å`, cx, cy - 80);
+}
+
+
+// ------------------------------------------------------------
 // Zoom (mouse wheel)
 // ------------------------------------------------------------
 
