@@ -72,17 +72,13 @@ function calculateSpectrum() {
   for (let J = 0; J < maxJ; J++) {
     const x = J * (J + 1)
 
-    // Lower-state rotational energy
     const E_lower = p.B * x - p.D_user * x * x
 
-    // Boltzmann population
     const population =
       (2 * J + 1) *
       Math.exp(-(h * c_cm * E_lower) / (kB * temperature))
 
-    // -------------------------
     // R branch: ΔJ = +1
-    // -------------------------
     const R_wavenumber =
       nu0 +
       (2 * p.B * (J + 1)) -
@@ -97,10 +93,7 @@ function calculateSpectrum() {
       intensity: R_intensity
     })
 
-    // -------------------------
-    // P branch: ΔJ = –1
-    // Only valid for J ≥ 1
-    // -------------------------
+    // P branch: ΔJ = –1 (J ≥ 1)
     if (J > 0) {
       const P_wavenumber =
         nu0 -
@@ -118,11 +111,9 @@ function calculateSpectrum() {
     }
   }
 
-  // Normalise intensities
   const maxIntensity = Math.max(...result.map(line => line.intensity))
   for (const line of result) line.intensity /= maxIntensity
 
-  // Sort by wavenumber
   result.sort((a, b) => a.wavenumber - b.wavenumber)
 
   return result
@@ -147,13 +138,14 @@ function updateParameterLabels() {
 
   if (lines.length > 0) {
     const peak = lines.reduce((a, b) => b.intensity > a.intensity ? b : a)
+    const jUpper = peak.branch === 'R' ? peak.J + 1 : peak.J - 1
     $('jPeakLabel').textContent =
-      `${peak.branch} branch, J=${peak.J} → ${peak.branch === 'R' ? peak.J + 1 : peak.J - 1}`
+      `${peak.branch} branch, J=${peak.J} → ${jUpper}`
   }
 }
 
 // ------------------------------------------------------------
-// Spectrum drawing (zoom, pan, selection preserved)
+// Spectrum drawing
 // ------------------------------------------------------------
 
 function clearCanvas(ctx, canvas) {
@@ -277,7 +269,7 @@ function drawSpectrum() {
 }
 
 // ------------------------------------------------------------
-// Energy levels (still rotational only)
+// Energy levels
 // ------------------------------------------------------------
 
 function drawEnergyLevels() {
@@ -570,3 +562,11 @@ specC.addEventListener('click', event => {
   if (selectedPeaks.length > 2) selectedPeaks.shift()
 
   updatePeakDifference()
+  drawSpectrum()
+})
+
+// ------------------------------------------------------------
+// Initial calculation
+// ------------------------------------------------------------
+
+updateSimulation()
