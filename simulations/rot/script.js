@@ -359,7 +359,7 @@ function updateSimulation() {
 
   updateParameterLabels()
   drawSpectrum()
-  drawEnergyLevels()
+  drawMoleculeDiagram()
   updateTable()
 }
 
