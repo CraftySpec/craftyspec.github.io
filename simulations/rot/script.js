@@ -496,17 +496,23 @@ function drawMoleculeDiagram() {
   lctx.stroke();
 
   // Draw atoms
-  function drawAtom(x, y, radius, label) {
-    lctx.fillStyle = "#4fd1c5";
-    lctx.beginPath();
-    lctx.arc(x, y, radius, 0, Math.PI * 2);
-    lctx.fill();
+function drawAtom(x, y, radius, label) {
+  // Draw atom
+  lctx.fillStyle = "#4fd1c5";
+  lctx.beginPath();
+  lctx.arc(x, y, radius, 0, Math.PI * 2);
+  lctx.fill();
 
-    lctx.fillStyle = "#ffffff";
-    lctx.font = "16px sans-serif";
-    lctx.textAlign = "center";
-    lctx.fillText(label, x, y + 5);
-  }
+  // Label BELOW the atom
+  lctx.fillStyle = "#ffffff";
+  lctx.font = "16px sans-serif";
+  lctx.textAlign = "center";
+
+  // Offset scales with radius so it always looks right
+  const labelOffset = radius + 30;   // push text further down
+  lctx.fillText(label, x, y + labelOffset);
+}
+
 
   drawAtom(x1, cy, r1, `m₁ = ${m1.toFixed(3)} u`);
   drawAtom(x2, cy, r2, `m₂ = ${m2.toFixed(3)} u`);
